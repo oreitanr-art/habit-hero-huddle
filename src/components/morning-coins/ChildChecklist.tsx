@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { useMorningCoins } from "@/hooks/useMorningCoins";
+import { useMorningCoinsCloud } from "@/hooks/useMorningCoinsCloud";
 import { CoinDisplay } from "@/components/morning-coins/CoinDisplay";
 import { TaskCard } from "@/components/morning-coins/TaskCard";
 import { ProgressBar } from "@/components/morning-coins/ProgressBar";
@@ -9,40 +9,47 @@ import { CelebrationOverlay } from "@/components/morning-coins/CelebrationOverla
 export function ChildChecklist() {
   const { 
     store, 
-    completedTaskIds, 
-    todayEarned, 
-    weeklyCoins, 
-    allTasksCompleted,
-    toggleTask 
-  } = useMorningCoins();
+    toggleTask,
+    getTodayStatus,
+    getWeeklyCoins,
+  } = useMorningCoinsCloud();
   
   const [showCelebration, setShowCelebration] = useState(false);
-  const [prevAllCompleted, setPrevAllCompleted] = useState(false);
+
+  const todayStatus = getTodayStatus();
+  const completedTaskIds = new Set(todayStatus?.completedTaskIds || []);
+  const weeklyCoins = getWeeklyCoins();
 
   // Check for celebration trigger
   const handleToggle = useCallback((taskId: string) => {
-    const wasAllCompleted = allTasksCompleted;
+    if (!store) return;
+    
+    const wasAllCompleted = completedTaskIds.size === store.tasks.length;
+    const willBeCompleted = completedTaskIds.size === store.tasks.length - 1 && 
+      !completedTaskIds.has(taskId);
+    
     toggleTask(taskId);
     
-    // Will be all completed after this toggle?
-    if (!wasAllCompleted && store) {
-      const willBeCompleted = completedTaskIds.size === store.tasks.length - 1 && 
-        !completedTaskIds.has(taskId);
-      
-      if (willBeCompleted) {
-        setTimeout(() => {
-          setShowCelebration(true);
-          setTimeout(() => setShowCelebration(false), 2500);
-        }, 300);
-      }
+    if (willBeCompleted && !wasAllCompleted) {
+      setTimeout(() => {
+        setShowCelebration(true);
+        setTimeout(() => setShowCelebration(false), 2500);
+      }, 300);
     }
-  }, [toggleTask, allTasksCompleted, completedTaskIds, store]);
+  }, [toggleTask, completedTaskIds, store]);
 
   if (!store) return null;
 
   const completedCount = completedTaskIds.size;
   const totalTasks = store.tasks.length;
   const maxDailyCoins = store.tasks.reduce((sum, t) => sum + t.coins, 0);
+  const allTasksCompleted = completedCount === totalTasks && totalTasks > 0;
+  
+  // Calculate today's earnings
+  const todayEarned = store.tasks
+    .filter(t => completedTaskIds.has(t.id))
+    .reduce((sum, t) => sum + t.coins, 0) + 
+    (todayStatus?.allDoneBonusApplied ? store.settings.bonuses.allDoneDailyBonus : 0);
 
   return (
     <div className="space-y-6">
@@ -81,7 +88,7 @@ export function ChildChecklist() {
         <div className="mt-3 flex items-center justify-between text-sm">
           <span className="text-muted-foreground">הרווחת היום:</span>
           <span className="font-bold flex items-center gap-1">
-            {todayEarned} / {maxDailyCoins} 🪙
+            {todayEarned} / {maxDailyCoins + store.settings.bonuses.allDoneDailyBonus} 🪙
           </span>
         </div>
         {allTasksCompleted && (

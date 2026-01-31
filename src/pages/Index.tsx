@@ -1,24 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useMorningCoins } from "@/hooks/useMorningCoins";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMorningCoinsCloud } from "@/hooks/useMorningCoinsCloud";
 import { ChildChecklist } from "@/components/morning-coins/ChildChecklist";
 import { FridaySummary } from "@/components/morning-coins/FridaySummary";
 import { ParentSettings } from "@/components/morning-coins/ParentSettings";
 import { PinDialog } from "@/components/morning-coins/PinDialog";
+import { ChildSelector } from "@/components/ChildSelector";
+import { LogOut } from "lucide-react";
 
 type Mode = "child" | "parent";
 type View = "checklist" | "shop";
 
 const Index = () => {
-  const { store, isLoading, isShopDay } = useMorningCoins();
+  const { selectedChild, signOut } = useAuth();
+  const { store, isLoading, isShopDay } = useMorningCoinsCloud();
   const [mode, setMode] = useState<Mode>("child");
-  const [childView, setChildView] = useState<View>(isShopDay ? "shop" : "checklist");
+  const [childView, setChildView] = useState<View>("checklist");
   const [showPinDialog, setShowPinDialog] = useState(false);
 
-  if (isLoading || !store) {
+  // Update view when shop day changes
+  useEffect(() => {
+    if (isShopDay) {
+      setChildView("shop");
+    } else {
+      setChildView("checklist");
+    }
+  }, [isShopDay]);
+
+  if (isLoading || !store || !selectedChild) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="text-4xl"
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
@@ -43,35 +56,44 @@ const Index = () => {
   };
 
   return (
-    <main className="min-h-screen bg-background pb-24">
+    <main className="min-h-screen bg-background pb-24" dir="rtl">
       {/* Header */}
-      <motion.header 
+      <motion.header
         className="sticky top-0 z-30 bg-card/90 backdrop-blur-sm shadow-soft"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
       >
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <motion.div 
-            className="flex items-center gap-2"
-            whileHover={{ scale: 1.02 }}
-          >
+          <div className="flex items-center gap-2">
             <span className="text-3xl">🪙</span>
-            <h1 className="text-xl font-bold">Morning Coins</h1>
-          </motion.div>
+            <ChildSelector />
+          </div>
 
-          <motion.button
-            onClick={handleParentClick}
-            className={`
-              px-4 py-2 rounded-xl text-sm font-medium transition-all
-              ${mode === "parent" 
-                ? "bg-primary text-primary-foreground" 
-                : "bg-secondary text-secondary-foreground"
-              }
-            `}
-            whileTap={{ scale: 0.95 }}
-          >
-            {mode === "parent" ? "🔓 חזרה לילד" : "🔐 הורה"}
-          </motion.button>
+          <div className="flex items-center gap-2">
+            <motion.button
+              onClick={handleParentClick}
+              className={`
+                px-4 py-2 rounded-xl text-sm font-medium transition-all
+                ${
+                  mode === "parent"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground"
+                }
+              `}
+              whileTap={{ scale: 0.95 }}
+            >
+              {mode === "parent" ? "🔓 חזרה לילד" : "🔐 הורה"}
+            </motion.button>
+
+            <motion.button
+              onClick={signOut}
+              className="p-2 rounded-xl bg-secondary text-secondary-foreground"
+              whileTap={{ scale: 0.95 }}
+              title="התנתק"
+            >
+              <LogOut className="h-4 w-4" />
+            </motion.button>
+          </div>
         </div>
       </motion.header>
 
@@ -101,9 +123,10 @@ const Index = () => {
                     onClick={() => setChildView("checklist")}
                     className={`
                       flex-1 py-3 rounded-xl font-bold transition-all
-                      ${childView === "checklist" 
-                        ? "coin-gradient text-primary-foreground" 
-                        : "bg-secondary"
+                      ${
+                        childView === "checklist"
+                          ? "coin-gradient text-primary-foreground"
+                          : "bg-secondary"
                       }
                     `}
                   >
@@ -113,9 +136,10 @@ const Index = () => {
                     onClick={() => setChildView("shop")}
                     className={`
                       flex-1 py-3 rounded-xl font-bold transition-all
-                      ${childView === "shop" 
-                        ? "coin-gradient text-primary-foreground" 
-                        : "bg-secondary"
+                      ${
+                        childView === "shop"
+                          ? "coin-gradient text-primary-foreground"
+                          : "bg-secondary"
                       }
                     `}
                   >

@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useMorningCoins } from "@/hooks/useMorningCoins";
+import { useMorningCoinsCloud } from "@/hooks/useMorningCoinsCloud";
 import { CoinDisplay } from "@/components/morning-coins/CoinDisplay";
 import { RewardCard } from "@/components/morning-coins/RewardCard";
 import { PinDialog } from "@/components/morning-coins/PinDialog";
 import { CelebrationOverlay } from "@/components/morning-coins/CelebrationOverlay";
+import { useToast } from "@/hooks/use-toast";
 
 export function FridaySummary() {
   const { 
     store, 
-    weeklyCoins, 
-    completedDaysThisWeek, 
-    hasPerfectWeek,
+    getWeeklyCoins,
     buyReward 
-  } = useMorningCoins();
+  } = useMorningCoinsCloud();
+  const { toast } = useToast();
   
   const [selectedRewardId, setSelectedRewardId] = useState<string | null>(null);
   const [showPinDialog, setShowPinDialog] = useState(false);
@@ -22,29 +22,62 @@ export function FridaySummary() {
 
   if (!store) return null;
 
+  const weeklyCoins = getWeeklyCoins();
+  
+  // Calculate completed days this week (simplified - count days with all tasks done)
+  const completedDaysThisWeek = Object.values(store.dailyByDate).filter(
+    d => d.allDoneBonusApplied
+  ).length;
+  
+  const hasPerfectWeek = completedDaysThisWeek >= 5;
+
   const handleBuyClick = (rewardId: string) => {
     setSelectedRewardId(rewardId);
     setShowPinDialog(true);
   };
 
-  const handlePinSuccess = () => {
+  const handlePinSuccess = async () => {
     if (!selectedRewardId) return;
     
     const reward = store.rewards.find(r => r.id === selectedRewardId);
-    const result = buyReward(selectedRewardId);
+    if (!reward) return;
+
+    // Check if can afford
+    if (store.walletCoins < reward.cost) {
+      toast({
+        title: "אין מספיק מטבעות",
+        description: `צריך ${reward.cost} מטבעות, יש לך רק ${store.walletCoins}`,
+        variant: "destructive",
+      });
+      setShowPinDialog(false);
+      setSelectedRewardId(null);
+      return;
+    }
+
+    // Check perfect week requirement
+    if (reward.requiresPerfectWeek && !hasPerfectWeek) {
+      toast({
+        title: "צריך שבוע מושלם",
+        description: "הפרס הזה זמין רק למי שסיים 5 ימים מושלמים",
+        variant: "destructive",
+      });
+      setShowPinDialog(false);
+      setSelectedRewardId(null);
+      return;
+    }
+    
+    const success = await buyReward(selectedRewardId);
     
     setShowPinDialog(false);
     setSelectedRewardId(null);
     
-    if (result.ok && reward) {
+    if (success) {
       setPurchasedReward(reward.title);
       setShowCelebration(true);
       setTimeout(() => {
         setShowCelebration(false);
         setPurchasedReward(null);
       }, 3000);
-    } else if (result.reason) {
-      alert(result.reason);
     }
   };
 
@@ -123,7 +156,7 @@ export function FridaySummary() {
             <RewardCard
               key={reward.id}
               reward={reward}
-              weeklyCoins={weeklyCoins}
+              weeklyCoins={store.walletCoins}
               hasPerfectWeek={hasPerfectWeek}
               onBuy={() => handleBuyClick(reward.id)}
               index={index}

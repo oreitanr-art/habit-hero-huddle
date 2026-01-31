@@ -7,6 +7,15 @@ export function toISODate(d: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+export function getTodayKey(): string {
+  return toISODate(new Date());
+}
+
+export function isShopDay(): boolean {
+  const today = new Date();
+  return isFriday(today) || isSaturday(today);
+}
+
 // WeekKey = ISO date of Sunday for the current week (Israel-style week start)
 export function getWeekKey(d: Date): string {
   const date = new Date(d);

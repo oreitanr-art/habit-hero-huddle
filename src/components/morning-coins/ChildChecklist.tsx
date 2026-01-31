@@ -1,12 +1,13 @@
 import { useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useMorningCoinsCloud } from "@/hooks/useMorningCoinsCloud";
 import { CoinDisplay } from "@/components/morning-coins/CoinDisplay";
 import { TaskCard } from "@/components/morning-coins/TaskCard";
 import { ProgressBar } from "@/components/morning-coins/ProgressBar";
 import { CelebrationOverlay } from "@/components/morning-coins/CelebrationOverlay";
+import { GameHub } from "@/games/GameHub";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Send, CheckCircle } from "lucide-react";
+import { Lock, Send, CheckCircle, Gamepad2 } from "lucide-react";
 
 export function ChildChecklist() {
   const { 
@@ -21,6 +22,8 @@ export function ChildChecklist() {
   
   const [showCelebration, setShowCelebration] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showGameOffer, setShowGameOffer] = useState(false);
+  const [showGameLibrary, setShowGameLibrary] = useState(false);
 
   const todayStatus = getTodayStatus();
   const completedTaskIds = new Set(todayStatus?.completedTaskIds || []);
@@ -55,8 +58,10 @@ export function ChildChecklist() {
     if (success) {
       toast({
         title: "🎉 נשלח בהצלחה!",
-        description: "המטלות נשמרו. כל הכבוד!",
+        description: "המטלות נשמרו. עכשיו אפשר לשחק!",
       });
+      // Show game offer after successful submission
+      setShowGameOffer(true);
     } else {
       toast({
         title: "שגיאה",
@@ -80,6 +85,27 @@ export function ChildChecklist() {
     .reduce((sum, t) => sum + t.coins, 0) + 
     (todayStatus?.allDoneBonusApplied ? store.settings.bonuses.allDoneDailyBonus : 0);
 
+  // Show game hub if requested
+  if (showGameOffer) {
+    return (
+      <GameHub
+        walletCoins={store.walletCoins}
+        mode="offer"
+        onClose={() => setShowGameOffer(false)}
+      />
+    );
+  }
+
+  if (showGameLibrary) {
+    return (
+      <GameHub
+        walletCoins={store.walletCoins}
+        mode="library"
+        onClose={() => setShowGameLibrary(false)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header with greeting */}
@@ -93,15 +119,15 @@ export function ChildChecklist() {
         </h1>
         <p className="p-kid">
           {isSubmitted 
-            ? "המטלות נשלחו! נתראה מחר 👋" 
+            ? "המטלות נשלחו! אפשר לשחק 👋" 
             : "בוא נסיים את המטלות ונרוויח מטבעות!"}
         </p>
       </motion.div>
 
-      {/* Submitted banner */}
+      {/* Submitted banner with game button */}
       {isSubmitted && (
         <motion.div 
-          className="card-kid bg-success/10 border-2 border-success text-center"
+          className="card-kid bg-success/10 border-2 border-success text-center space-y-3"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
@@ -110,9 +136,13 @@ export function ChildChecklist() {
             <span className="font-black text-success text-lg">המטלות נשלחו!</span>
             <Lock className="h-5 w-5 text-success" />
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            רק הורה יכול לערוך עכשיו
-          </p>
+          <button 
+            onClick={() => setShowGameLibrary(true)}
+            className="btn-kid btn-primary-kid flex items-center justify-center gap-2 mx-auto"
+          >
+            <Gamepad2 className="h-5 w-5" />
+            <span>שחק משחקים 🎮</span>
+          </button>
         </motion.div>
       )}
 

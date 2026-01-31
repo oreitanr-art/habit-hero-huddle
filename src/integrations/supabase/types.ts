@@ -23,6 +23,7 @@ export type Database = {
           date: string
           id: string
           penalty_applied: boolean
+          submitted_at: string | null
         }
         Insert: {
           all_done_bonus_applied?: boolean
@@ -32,6 +33,7 @@ export type Database = {
           date: string
           id?: string
           penalty_applied?: boolean
+          submitted_at?: string | null
         }
         Update: {
           all_done_bonus_applied?: boolean
@@ -41,6 +43,7 @@ export type Database = {
           date?: string
           id?: string
           penalty_applied?: boolean
+          submitted_at?: string | null
         }
         Relationships: [
           {

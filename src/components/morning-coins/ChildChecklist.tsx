@@ -5,6 +5,8 @@ import { CoinDisplay } from "@/components/morning-coins/CoinDisplay";
 import { TaskCard } from "@/components/morning-coins/TaskCard";
 import { ProgressBar } from "@/components/morning-coins/ProgressBar";
 import { CelebrationOverlay } from "@/components/morning-coins/CelebrationOverlay";
+import { useToast } from "@/hooks/use-toast";
+import { Lock, Send, CheckCircle } from "lucide-react";
 
 export function ChildChecklist() {
   const { 
@@ -12,17 +14,22 @@ export function ChildChecklist() {
     toggleTask,
     getTodayStatus,
     getWeeklyCoins,
+    isTodaySubmitted,
+    submitToday,
   } = useMorningCoinsCloud();
+  const { toast } = useToast();
   
   const [showCelebration, setShowCelebration] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const todayStatus = getTodayStatus();
   const completedTaskIds = new Set(todayStatus?.completedTaskIds || []);
   const weeklyCoins = getWeeklyCoins();
+  const isSubmitted = isTodaySubmitted();
 
   // Check for celebration trigger
   const handleToggle = useCallback((taskId: string) => {
-    if (!store) return;
+    if (!store || isSubmitted) return;
     
     const wasAllCompleted = completedTaskIds.size === store.tasks.length;
     const willBeCompleted = completedTaskIds.size === store.tasks.length - 1 && 
@@ -36,7 +43,28 @@ export function ChildChecklist() {
         setTimeout(() => setShowCelebration(false), 2500);
       }, 300);
     }
-  }, [toggleTask, completedTaskIds, store]);
+  }, [toggleTask, completedTaskIds, store, isSubmitted]);
+
+  const handleSubmit = async () => {
+    if (isSubmitting || isSubmitted) return;
+    
+    setIsSubmitting(true);
+    const success = await submitToday();
+    setIsSubmitting(false);
+
+    if (success) {
+      toast({
+        title: "🎉 נשלח בהצלחה!",
+        description: "המטלות נשמרו. כל הכבוד!",
+      });
+    } else {
+      toast({
+        title: "שגיאה",
+        description: "לא ניתן לשלוח. נסה שוב.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (!store) return null;
 
@@ -44,6 +72,7 @@ export function ChildChecklist() {
   const totalTasks = store.tasks.length;
   const maxDailyCoins = store.tasks.reduce((sum, t) => sum + t.coins, 0);
   const allTasksCompleted = completedCount === totalTasks && totalTasks > 0;
+  const hasAnyCompleted = completedCount > 0;
   
   // Calculate today's earnings
   const todayEarned = store.tasks
@@ -63,9 +92,29 @@ export function ChildChecklist() {
           בוקר טוב! ☀️
         </h1>
         <p className="p-kid">
-          בוא נסיים את המטלות ונרוויח מטבעות!
+          {isSubmitted 
+            ? "המטלות נשלחו! נתראה מחר 👋" 
+            : "בוא נסיים את המטלות ונרוויח מטבעות!"}
         </p>
       </motion.div>
+
+      {/* Submitted banner */}
+      {isSubmitted && (
+        <motion.div 
+          className="card-kid bg-success/10 border-2 border-success text-center"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <CheckCircle className="h-6 w-6 text-success" />
+            <span className="font-black text-success text-lg">המטלות נשלחו!</span>
+            <Lock className="h-5 w-5 text-success" />
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            רק הורה יכול לערוך עכשיו
+          </p>
+        </motion.div>
+      )}
 
       {/* Coins display */}
       <div className="grid grid-cols-2 gap-3">
@@ -91,7 +140,7 @@ export function ChildChecklist() {
             {todayEarned} / {maxDailyCoins + store.settings.bonuses.allDoneDailyBonus} 🪙
           </span>
         </div>
-        {allTasksCompleted && (
+        {allTasksCompleted && !isSubmitted && (
           <motion.div 
             className="mt-3 text-center text-success font-black flex items-center justify-center gap-2"
             initial={{ opacity: 0, scale: 0.8 }}
@@ -105,7 +154,7 @@ export function ChildChecklist() {
       </motion.div>
 
       {/* Task list */}
-      <div className="task-list-kid">
+      <div className={`task-list-kid ${isSubmitted ? "opacity-60 pointer-events-none" : ""}`}>
         {store.tasks.map((task, index) => (
           <TaskCard
             key={task.id}
@@ -116,6 +165,41 @@ export function ChildChecklist() {
           />
         ))}
       </div>
+
+      {/* Submit button - show only when not yet submitted and has completed tasks */}
+      {!isSubmitted && hasAnyCompleted && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="sticky bottom-4"
+        >
+          <motion.button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="btn-kid btn-secondary-kid w-full text-lg py-4 flex items-center justify-center gap-2 shadow-xl"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {isSubmitting ? (
+              <>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                  className="inline-block"
+                >
+                  🪙
+                </motion.div>
+                <span>שולח...</span>
+              </>
+            ) : (
+              <>
+                <Send className="h-5 w-5" />
+                <span>שלח את המטלות!</span>
+              </>
+            )}
+          </motion.button>
+        </motion.div>
+      )}
 
       {/* Streak info */}
       {store.streak.current > 0 && (

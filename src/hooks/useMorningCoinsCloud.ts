@@ -37,6 +37,7 @@ interface ChildDailyProgress {
   completed_task_ids: string[];
   all_done_bonus_applied: boolean;
   penalty_applied: boolean;
+  submitted_at: string | null;
 }
 
 export function useMorningCoinsCloud() {
@@ -93,6 +94,7 @@ export function useMorningCoinsCloud() {
           completedTaskIds: p.completed_task_ids || [],
           allDoneBonusApplied: p.all_done_bonus_applied,
           penaltyApplied: p.penalty_applied,
+          submittedAt: p.submitted_at || undefined,
         };
       });
 
@@ -462,6 +464,7 @@ export function useMorningCoinsCloud() {
       completedTaskIds: [],
       allDoneBonusApplied: false,
       penaltyApplied: false,
+      submittedAt: undefined,
     };
   }, [store]);
 
@@ -471,6 +474,52 @@ export function useMorningCoinsCloud() {
     const weekKey = getWeekKey(new Date());
     return store.weeklyCoinsByWeekKey[weekKey] || 0;
   }, [store]);
+
+  // Check if today is submitted/locked
+  const isTodaySubmitted = useCallback(() => {
+    const todayStatus = getTodayStatus();
+    return !!todayStatus?.submittedAt;
+  }, [getTodayStatus]);
+
+  // Submit today's tasks (lock the day)
+  const submitToday = useCallback(async () => {
+    if (!selectedChild || !store) return false;
+
+    const todayKey = getTodayKey();
+    const todayStatus = store.dailyByDate[todayKey];
+    
+    if (!todayStatus || todayStatus.submittedAt) return false;
+
+    const submittedAt = new Date().toISOString();
+
+    // Update local state
+    setStore((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        dailyByDate: {
+          ...prev.dailyByDate,
+          [todayKey]: {
+            ...prev.dailyByDate[todayKey],
+            submittedAt,
+          },
+        },
+      };
+    });
+
+    // Update database
+    try {
+      await supabase.from("child_daily_progress").update({
+        submitted_at: submittedAt,
+      }).eq("child_id", selectedChild.id).eq("date", todayKey);
+
+      return true;
+    } catch (error) {
+      console.error("Error submitting day:", error);
+      loadData();
+      return false;
+    }
+  }, [selectedChild, store, loadData]);
 
   return {
     store,
@@ -487,6 +536,8 @@ export function useMorningCoinsCloud() {
     deleteReward,
     getTodayStatus,
     getWeeklyCoins,
+    isTodaySubmitted,
+    submitToday,
     refresh: loadData,
   };
 }

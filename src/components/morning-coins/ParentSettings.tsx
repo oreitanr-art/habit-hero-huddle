@@ -1,68 +1,93 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useMorningCoins } from "@/hooks/useMorningCoins";
+import { useMorningCoinsCloud } from "@/hooks/useMorningCoinsCloud";
+import { useAuth } from "@/contexts/AuthContext";
 import { Task, Reward } from "@/lib/morning-coins/types";
+import { useToast } from "@/hooks/use-toast";
+import { Plus, Trash2 } from "lucide-react";
 
 export function ParentSettings() {
-  const { store, updateStore, resetStore } = useMorningCoins();
+  const { 
+    store, 
+    updateSettings, 
+    updateTask, 
+    deleteTask, 
+    addTask,
+    updateReward,
+    deleteReward,
+    addReward,
+  } = useMorningCoinsCloud();
+  const { selectedChild } = useAuth();
+  const { toast } = useToast();
+  
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingReward, setEditingReward] = useState<Reward | null>(null);
   const [newPin, setNewPin] = useState("");
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [showAddReward, setShowAddReward] = useState(false);
+  const [newTask, setNewTask] = useState({ title: "", coins: 2, icon: "✅" });
+  const [newReward, setNewReward] = useState({ title: "", cost: 10, icon: "🎁", requiresPerfectWeek: false });
 
-  if (!store) return null;
+  if (!store || !selectedChild) return null;
 
-  const handleUpdatePin = () => {
+  const handleUpdatePin = async () => {
     if (newPin.length === 4) {
-      updateStore(s => ({
-        ...s,
-        settings: { ...s.settings, pin: newPin }
-      }));
+      await updateSettings({ pin: newPin });
       setNewPin("");
-      alert("הקוד עודכן בהצלחה!");
+      toast({ title: "הקוד עודכן בהצלחה!" });
     }
   };
 
-  const handleUpdateTask = (task: Task) => {
-    updateStore(s => ({
-      ...s,
-      tasks: s.tasks.map(t => t.id === task.id ? task : t)
-    }));
+  const handleSaveTask = async (task: Task) => {
+    await updateTask(task.id, task);
     setEditingTask(null);
+    toast({ title: "המטלה עודכנה!" });
   };
 
-  const handleUpdateReward = (reward: Reward) => {
-    updateStore(s => ({
-      ...s,
-      rewards: s.rewards.map(r => r.id === reward.id ? reward : r)
-    }));
+  const handleDeleteTask = async (taskId: string) => {
+    await deleteTask(taskId);
+    setEditingTask(null);
+    toast({ title: "המטלה נמחקה" });
+  };
+
+  const handleAddTask = async () => {
+    if (!newTask.title.trim()) return;
+    await addTask(newTask);
+    setNewTask({ title: "", coins: 2, icon: "✅" });
+    setShowAddTask(false);
+    toast({ title: "המטלה נוספה!" });
+  };
+
+  const handleSaveReward = async (reward: Reward) => {
+    await updateReward(reward.id, reward);
     setEditingReward(null);
+    toast({ title: "הפרס עודכן!" });
   };
 
-  const handleUpdateBonuses = (key: string, value: number) => {
-    updateStore(s => ({
-      ...s,
-      settings: {
-        ...s.settings,
-        bonuses: { ...s.settings.bonuses, [key]: value }
-      }
-    }));
+  const handleDeleteReward = async (rewardId: string) => {
+    await deleteReward(rewardId);
+    setEditingReward(null);
+    toast({ title: "הפרס נמחק" });
   };
 
-  const handleUpdatePenalties = (key: string, value: number) => {
-    updateStore(s => ({
-      ...s,
-      settings: {
-        ...s.settings,
-        penalties: { ...s.settings.penalties, [key]: value }
-      }
-    }));
+  const handleAddReward = async () => {
+    if (!newReward.title.trim()) return;
+    await addReward(newReward);
+    setNewReward({ title: "", cost: 10, icon: "🎁", requiresPerfectWeek: false });
+    setShowAddReward(false);
+    toast({ title: "הפרס נוסף!" });
   };
 
-  const handleReset = () => {
-    resetStore();
-    setShowResetConfirm(false);
-    alert("כל הנתונים אופסו!");
+  const handleUpdateBonuses = async (key: string, value: number) => {
+    await updateSettings({
+      bonuses: { ...store.settings.bonuses, [key]: value }
+    });
+  };
+
+  const handleUpdatePenalties = async (key: string, value: number) => {
+    await updateSettings({
+      penalties: { ...store.settings.penalties, [key]: value }
+    });
   };
 
   return (
@@ -74,7 +99,7 @@ export function ParentSettings() {
         animate={{ opacity: 1, y: 0 }}
       >
         <h1 className="text-3xl font-bold mb-2">
-          הגדרות הורה ⚙️
+          הגדרות - {selectedChild.child_name} ⚙️
         </h1>
       </motion.div>
 
@@ -128,7 +153,16 @@ export function ParentSettings() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <h2 className="font-bold mb-3">מטלות</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bold">מטלות</h2>
+          <button
+            onClick={() => setShowAddTask(true)}
+            className="flex items-center gap-1 px-3 py-1 rounded-lg bg-primary text-primary-foreground text-sm"
+          >
+            <Plus className="h-4 w-4" />
+            הוסף
+          </button>
+        </div>
         <div className="space-y-2">
           {store.tasks.map(task => (
             <div key={task.id} className="flex items-center gap-2 p-2 bg-secondary rounded-xl">
@@ -153,7 +187,16 @@ export function ParentSettings() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        <h2 className="font-bold mb-3">פרסים</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bold">פרסים</h2>
+          <button
+            onClick={() => setShowAddReward(true)}
+            className="flex items-center gap-1 px-3 py-1 rounded-lg bg-primary text-primary-foreground text-sm"
+          >
+            <Plus className="h-4 w-4" />
+            הוסף
+          </button>
+        </div>
         <div className="space-y-2">
           {store.rewards.map(reward => (
             <div key={reward.id} className="flex items-center gap-2 p-2 bg-secondary rounded-xl">
@@ -241,41 +284,102 @@ export function ParentSettings() {
         </div>
       </motion.div>
 
-      {/* Reset */}
-      <motion.div 
-        className="bg-destructive/10 rounded-2xl p-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-      >
-        <h2 className="font-bold mb-3 text-destructive">איפוס נתונים</h2>
-        {!showResetConfirm ? (
-          <button
-            onClick={() => setShowResetConfirm(true)}
-            className="w-full py-3 rounded-xl bg-destructive text-destructive-foreground font-bold"
-          >
-            איפוס מלא
-          </button>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-sm text-center">בטוח? כל הנתונים יימחקו!</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowResetConfirm(false)}
-                className="flex-1 py-3 rounded-xl bg-muted"
-              >
-                ביטול
-              </button>
-              <button
-                onClick={handleReset}
-                className="flex-1 py-3 rounded-xl bg-destructive text-destructive-foreground font-bold"
-              >
-                כן, איפוס!
-              </button>
+      {/* Add Task Dialog */}
+      {showAddTask && (
+        <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl p-6 w-full max-w-sm shadow-lift">
+            <h2 className="text-xl font-bold mb-4">הוסף מטלה</h2>
+            <div className="space-y-3">
+              <input
+                value={newTask.title}
+                onChange={e => setNewTask({ ...newTask, title: e.target.value })}
+                className="w-full border rounded-xl p-3 bg-background"
+                placeholder="שם המטלה"
+              />
+              <input
+                value={newTask.icon}
+                onChange={e => setNewTask({ ...newTask, icon: e.target.value })}
+                className="w-full border rounded-xl p-3 bg-background text-center text-3xl"
+                placeholder="אייקון"
+              />
+              <input
+                type="number"
+                value={newTask.coins}
+                onChange={e => setNewTask({ ...newTask, coins: Number(e.target.value) })}
+                className="w-full border rounded-xl p-3 bg-background"
+                placeholder="מטבעות"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowAddTask(false)}
+                  className="flex-1 py-3 rounded-xl bg-muted"
+                >
+                  ביטול
+                </button>
+                <button
+                  onClick={handleAddTask}
+                  className="flex-1 py-3 rounded-xl coin-gradient text-primary-foreground font-bold"
+                >
+                  הוסף
+                </button>
+              </div>
             </div>
           </div>
-        )}
-      </motion.div>
+        </div>
+      )}
+
+      {/* Add Reward Dialog */}
+      {showAddReward && (
+        <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl p-6 w-full max-w-sm shadow-lift">
+            <h2 className="text-xl font-bold mb-4">הוסף פרס</h2>
+            <div className="space-y-3">
+              <input
+                value={newReward.title}
+                onChange={e => setNewReward({ ...newReward, title: e.target.value })}
+                className="w-full border rounded-xl p-3 bg-background"
+                placeholder="שם הפרס"
+              />
+              <input
+                value={newReward.icon}
+                onChange={e => setNewReward({ ...newReward, icon: e.target.value })}
+                className="w-full border rounded-xl p-3 bg-background text-center text-3xl"
+                placeholder="אייקון"
+              />
+              <input
+                type="number"
+                value={newReward.cost}
+                onChange={e => setNewReward({ ...newReward, cost: Number(e.target.value) })}
+                className="w-full border rounded-xl p-3 bg-background"
+                placeholder="מחיר"
+              />
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={newReward.requiresPerfectWeek}
+                  onChange={e => setNewReward({ ...newReward, requiresPerfectWeek: e.target.checked })}
+                  className="w-5 h-5"
+                />
+                <span>דורש שבוע מושלם</span>
+              </label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowAddReward(false)}
+                  className="flex-1 py-3 rounded-xl bg-muted"
+                >
+                  ביטול
+                </button>
+                <button
+                  onClick={handleAddReward}
+                  className="flex-1 py-3 rounded-xl coin-gradient text-primary-foreground font-bold"
+                >
+                  הוסף
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Task Dialog */}
       {editingTask && (
@@ -304,13 +408,19 @@ export function ParentSettings() {
               />
               <div className="flex gap-2">
                 <button
+                  onClick={() => handleDeleteTask(editingTask.id)}
+                  className="p-3 rounded-xl bg-destructive text-destructive-foreground"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+                <button
                   onClick={() => setEditingTask(null)}
                   className="flex-1 py-3 rounded-xl bg-muted"
                 >
                   ביטול
                 </button>
                 <button
-                  onClick={() => handleUpdateTask(editingTask)}
+                  onClick={() => handleSaveTask(editingTask)}
                   className="flex-1 py-3 rounded-xl coin-gradient text-primary-foreground font-bold"
                 >
                   שמור
@@ -357,13 +467,19 @@ export function ParentSettings() {
               </label>
               <div className="flex gap-2">
                 <button
+                  onClick={() => handleDeleteReward(editingReward.id)}
+                  className="p-3 rounded-xl bg-destructive text-destructive-foreground"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+                <button
                   onClick={() => setEditingReward(null)}
                   className="flex-1 py-3 rounded-xl bg-muted"
                 >
                   ביטול
                 </button>
                 <button
-                  onClick={() => handleUpdateReward(editingReward)}
+                  onClick={() => handleSaveReward(editingReward)}
                   className="flex-1 py-3 rounded-xl coin-gradient text-primary-foreground font-bold"
                 >
                   שמור

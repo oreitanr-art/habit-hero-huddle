@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import DevPreview from "./pages/DevPreview";
 import { CompleteProfileForm } from "./components/auth/CompleteProfileForm";
 import { motion } from "framer-motion";
 
@@ -89,6 +90,7 @@ const App = () => (
                 </PublicRoute>
               }
             />
+            <Route path="/dev" element={<DevPreview />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

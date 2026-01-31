@@ -21,14 +21,14 @@ export const DevNavigation = ({ currentView, onViewChange }: DevNavigationProps)
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-4 left-4 z-50" dir="ltr">
+    <div className="fixed bottom-4 right-4 z-[9999]" dir="ltr">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="absolute bottom-16 left-0 bg-white rounded-2xl shadow-2xl border-4 border-kid-sky p-4 min-w-[200px]"
+            className="absolute bottom-16 right-0 bg-white rounded-2xl shadow-2xl border-4 border-kid-sky p-4 min-w-[220px]"
           >
             <h3 className="font-black text-lg mb-3 text-kid-navy">🎨 תצוגות</h3>
             <div className="space-y-2">

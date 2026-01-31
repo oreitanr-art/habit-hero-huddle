@@ -58,8 +58,8 @@ export const DevNavigation = ({ currentView, onViewChange }: DevNavigationProps)
 
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center ${
-          isOpen ? "bg-red-500" : "bg-kid-sky"
+        className={`w-14 h-14 rounded-full shadow-xl flex items-center justify-center border-4 border-white ${
+          isOpen ? "bg-red-500" : "bg-kid-navy"
         } text-white`}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { CoinIcon } from "@/design/icons";
 
 interface CoinDisplayProps {
   amount: number;
@@ -14,6 +15,12 @@ export function CoinDisplay({ amount, label, size = "md", animate = false }: Coi
     lg: "text-5xl",
   };
 
+  const iconSizes = {
+    sm: 22,
+    md: 28,
+    lg: 40,
+  };
+
   const containerClasses = {
     sm: "p-3",
     md: "p-4",
@@ -22,7 +29,7 @@ export function CoinDisplay({ amount, label, size = "md", animate = false }: Coi
 
   return (
     <motion.div
-      className={`rounded-2xl bg-card shadow-soft ${containerClasses[size]}`}
+      className={`card-kid ${containerClasses[size]}`}
       initial={animate ? { scale: 0.9, opacity: 0 } : false}
       animate={animate ? { scale: 1, opacity: 1 } : false}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -30,7 +37,7 @@ export function CoinDisplay({ amount, label, size = "md", animate = false }: Coi
       <div className="text-sm text-muted-foreground mb-1">{label}</div>
       <div className="flex items-center gap-2">
         <motion.span
-          className={`${sizeClasses[size]} font-bold text-primary`}
+          className={`${sizeClasses[size]} font-black text-secondary`}
           key={amount}
           initial={{ scale: 1.2 }}
           animate={{ scale: 1 }}
@@ -38,13 +45,12 @@ export function CoinDisplay({ amount, label, size = "md", animate = false }: Coi
         >
           {amount}
         </motion.span>
-        <motion.span 
-          className="text-2xl"
+        <motion.div 
           animate={animate ? { rotateY: [0, 360] } : {}}
           transition={{ duration: 0.8, ease: "easeInOut" }}
         >
-          🪙
-        </motion.span>
+          <CoinIcon size={iconSizes[size]} />
+        </motion.div>
       </div>
     </motion.div>
   );

@@ -59,10 +59,10 @@ export function ChildChecklist() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="text-3xl font-bold mb-2">
+        <h1 className="h1-kid mb-2">
           בוקר טוב! ☀️
         </h1>
-        <p className="text-muted-foreground">
+        <p className="p-kid">
           בוא נסיים את המטלות ונרוויח מטבעות!
         </p>
       </motion.div>
@@ -75,7 +75,7 @@ export function ChildChecklist() {
 
       {/* Today's progress */}
       <motion.div 
-        className="bg-card rounded-2xl p-4 shadow-soft"
+        className="card-kid"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
@@ -87,13 +87,13 @@ export function ChildChecklist() {
         />
         <div className="mt-3 flex items-center justify-between text-sm">
           <span className="text-muted-foreground">הרווחת היום:</span>
-          <span className="font-bold flex items-center gap-1">
+          <span className="font-black flex items-center gap-1">
             {todayEarned} / {maxDailyCoins + store.settings.bonuses.allDoneDailyBonus} 🪙
           </span>
         </div>
         {allTasksCompleted && (
           <motion.div 
-            className="mt-3 text-center text-success font-bold flex items-center justify-center gap-2"
+            className="mt-3 text-center text-success font-black flex items-center justify-center gap-2"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
           >
@@ -105,7 +105,7 @@ export function ChildChecklist() {
       </motion.div>
 
       {/* Task list */}
-      <div className="space-y-3">
+      <div className="task-list-kid">
         {store.tasks.map((task, index) => (
           <TaskCard
             key={task.id}
@@ -120,12 +120,12 @@ export function ChildChecklist() {
       {/* Streak info */}
       {store.streak.current > 0 && (
         <motion.div 
-          className="bg-primary/10 rounded-2xl p-4 text-center"
+          className="pill-kid text-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
           <span className="text-2xl">🔥</span>
-          <span className="font-bold mx-2">{store.streak.current}</span>
+          <span className="font-black">{store.streak.current}</span>
           <span className="text-muted-foreground">ימים ברצף!</span>
         </motion.div>
       )}

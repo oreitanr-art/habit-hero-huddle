@@ -89,28 +89,28 @@ export function FridaySummary() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="text-3xl font-bold mb-2">
+        <h1 className="h1-kid mb-2">
           שישי שמח! 🎊
         </h1>
-        <p className="text-muted-foreground">
+        <p className="p-kid">
           בוא נראה מה הרווחת השבוע
         </p>
       </motion.div>
 
       {/* Weekly summary */}
       <motion.div 
-        className="bg-card rounded-3xl p-6 shadow-soft"
+        className="card-kid"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.1 }}
       >
-        <h2 className="text-xl font-bold mb-4 text-center">סיכום השבוע</h2>
+        <h2 className="h2-kid mb-4 text-center">סיכום השבוע</h2>
         
         <div className="grid grid-cols-2 gap-4 mb-4">
           <CoinDisplay amount={weeklyCoins} label="מטבעות השבוע" size="lg" animate />
-          <div className="bg-secondary rounded-2xl p-4 text-center">
+          <div className="card-kid text-center">
             <div className="text-sm text-muted-foreground mb-1">ימים מושלמים</div>
-            <div className="text-4xl font-bold">
+            <div className="text-4xl font-black">
               {completedDaysThisWeek}/5
             </div>
             <div className="text-2xl">
@@ -121,20 +121,20 @@ export function FridaySummary() {
 
         {hasPerfectWeek && (
           <motion.div 
-            className="bg-success/10 rounded-2xl p-4 text-center"
+            className="icon-bubble green w-full rounded-2xl p-4 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
             <span className="text-3xl">🎉</span>
-            <h3 className="font-bold text-success mt-2">שבוע מושלם!</h3>
+            <h3 className="font-black text-success mt-2">שבוע מושלם!</h3>
             <p className="text-sm text-muted-foreground">כל הפרסים המיוחדים פתוחים!</p>
           </motion.div>
         )}
 
         {store.streak.current > 0 && (
-          <div className="mt-4 text-center">
+          <div className="pill-kid mt-4 justify-center">
             <span className="text-2xl">🔥</span>
-            <span className="font-bold mx-2 text-xl">{store.streak.current}</span>
+            <span className="font-black text-xl">{store.streak.current}</span>
             <span className="text-muted-foreground">ימים ברצף</span>
           </div>
         )}
@@ -146,12 +146,12 @@ export function FridaySummary() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+        <h2 className="h2-kid mb-4 flex items-center gap-2">
           <span>🏪</span>
           <span>חנות הפרסים</span>
         </h2>
 
-        <div className="space-y-3">
+        <div className="shop-grid">
           {store.rewards.map((reward, index) => (
             <RewardCard
               key={reward.id}

@@ -27,6 +27,7 @@ export const ChildSelector = () => {
   const { children, selectedChild, setSelectedChild, profile, refreshChildren } = useAuth();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newChildName, setNewChildName] = useState("");
+  const [newChildBirthDate, setNewChildBirthDate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -40,6 +41,7 @@ export const ChildSelector = () => {
       const { error } = await supabase.from("children").insert({
         parent_id: profile.id,
         child_name: newChildName.trim(),
+        birth_date: newChildBirthDate || null,
       });
 
       if (error) {
@@ -65,6 +67,7 @@ export const ChildSelector = () => {
       });
 
       setNewChildName("");
+      setNewChildBirthDate("");
       setShowAddDialog(false);
       await refreshChildren();
     } finally {
@@ -130,6 +133,17 @@ export const ChildSelector = () => {
                 placeholder="למשל: שירה"
                 value={newChildName}
                 onChange={(e) => setNewChildName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newChildBirthDate">תאריך לידה</Label>
+              <Input
+                id="newChildBirthDate"
+                type="date"
+                value={newChildBirthDate}
+                onChange={(e) => setNewChildBirthDate(e.target.value)}
+                dir="ltr"
+                className="text-left"
               />
             </div>
           </div>

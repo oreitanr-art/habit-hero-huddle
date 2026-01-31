@@ -215,6 +215,7 @@ export type Database = {
       }
       children: {
         Row: {
+          birth_date: string | null
           child_name: string
           created_at: string
           id: string
@@ -225,6 +226,7 @@ export type Database = {
           wallet_coins: number
         }
         Insert: {
+          birth_date?: string | null
           child_name: string
           created_at?: string
           id?: string
@@ -235,6 +237,7 @@ export type Database = {
           wallet_coins?: number
         }
         Update: {
+          birth_date?: string | null
           child_name?: string
           created_at?: string
           id?: string

@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 
 const completeProfileSchema = z.object({
   childName: z.string().trim().min(2, "שם הילד חייב להכיל לפחות 2 תווים").max(50),
+  childBirthDate: z.string().optional(),
   parentName: z.string().trim().min(2, "שם ההורה חייב להכיל לפחות 2 תווים").max(50),
   parentPhone: z.string().trim().regex(/^0\d{8,9}$/, "מספר טלפון לא תקין").optional().or(z.literal("")),
 });
@@ -20,6 +21,7 @@ export const CompleteProfileForm = () => {
   const { user, refreshProfile, refreshChildren } = useAuth();
   const [formData, setFormData] = useState({
     childName: "",
+    childBirthDate: "",
     parentName: "",
     parentPhone: "",
   });
@@ -76,6 +78,7 @@ export const CompleteProfileForm = () => {
         const { error: childError } = await supabase.from("children").insert({
           parent_id: profile.id,
           child_name: result.data.childName,
+          birth_date: result.data.childBirthDate || null,
         });
 
         if (childError) {
@@ -131,6 +134,18 @@ export const CompleteProfileForm = () => {
                   placeholder="למשל: יוסי"
                   value={formData.childName}
                   onChange={(e) => updateField("childName", e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="childBirthDate">תאריך לידה</Label>
+                <Input
+                  id="childBirthDate"
+                  type="date"
+                  value={formData.childBirthDate}
+                  onChange={(e) => updateField("childBirthDate", e.target.value)}
+                  dir="ltr"
+                  className="text-left"
                 />
               </div>
 

@@ -37,6 +37,7 @@ export interface DailyStatus {
   completedTaskIds: string[];
   allDoneBonusApplied: boolean;
   penaltyApplied?: boolean;
+  submittedAt?: string; // ISO timestamp - when set, day is locked
 }
 
 export interface Streak {

@@ -91,6 +91,19 @@ export function ParentSettings() {
     });
   };
 
+  // Calculate age from birth date
+  const calculateAge = (birthDate: string | null): string => {
+    if (!birthDate) return "לא הוזן";
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return `${age} שנים`;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -104,11 +117,25 @@ export function ParentSettings() {
         </h1>
       </motion.div>
 
+      {/* Child info */}
+      <motion.div 
+        className="card-kid"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <h2 className="h2-kid mb-2">פרטי הילד/ה</h2>
+        <div className="flex items-center gap-4 text-lg flex-wrap">
+          <span>👦 שם: <strong>{selectedChild.child_name}</strong></span>
+          <span>🎂 גיל: <strong>{calculateAge(selectedChild.birth_date)}</strong></span>
+        </div>
+      </motion.div>
+
       {/* Wallet status */}
       <motion.div 
         className="card-kid"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
+        transition={{ delay: 0.05 }}
       >
         <h2 className="h2-kid mb-2">סטטוס נוכחי</h2>
         <div className="flex items-center gap-4 text-lg">

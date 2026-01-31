@@ -16,6 +16,7 @@ interface Child {
   wallet_coins: number;
   streak_current: number;
   streak_last_all_done_date: string | null;
+  birth_date: string | null;
 }
 
 interface AuthContextType {

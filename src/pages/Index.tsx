@@ -2,20 +2,23 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMorningCoinsCloud } from "@/hooks/useMorningCoinsCloud";
+import { useAdmin } from "@/hooks/useAdmin";
 import { ChildChecklist } from "@/components/morning-coins/ChildChecklist";
 import { FridaySummary } from "@/components/morning-coins/FridaySummary";
 import { ParentSettings } from "@/components/morning-coins/ParentSettings";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { PinDialog } from "@/components/morning-coins/PinDialog";
 import { ChildSelector } from "@/components/ChildSelector";
 import { CoinIcon } from "@/design/icons";
-import { LogOut } from "lucide-react";
+import { LogOut, Shield } from "lucide-react";
 
-type Mode = "child" | "parent";
+type Mode = "child" | "parent" | "admin";
 type View = "checklist" | "shop";
 
 const Index = () => {
   const { selectedChild, signOut } = useAuth();
   const { store, isLoading, isShopDay } = useMorningCoinsCloud();
+  const { isAdmin, isLoading: isAdminLoading } = useAdmin();
   const [mode, setMode] = useState<Mode>("child");
   const [childView, setChildView] = useState<View>("checklist");
   const [showPinDialog, setShowPinDialog] = useState(false);
@@ -29,7 +32,7 @@ const Index = () => {
     }
   }, [isShopDay]);
 
-  if (isLoading || !store || !selectedChild) {
+  if (isLoading || isAdminLoading || !store || !selectedChild) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <motion.div
@@ -41,6 +44,14 @@ const Index = () => {
       </div>
     );
   }
+
+  const handleAdminClick = () => {
+    if (mode === "admin") {
+      setMode("child");
+    } else {
+      setMode("admin");
+    }
+  };
 
   const handleParentClick = () => {
     if (mode === "parent") {
@@ -70,6 +81,17 @@ const Index = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <motion.button
+                onClick={handleAdminClick}
+                className={`btn-kid ${mode === "admin" ? "btn-primary-kid" : "btn-ghost-kid"}`}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Shield className="h-4 w-4 inline ml-1" />
+                {mode === "admin" ? "חזרה" : "ניהול"}
+              </motion.button>
+            )}
+
             <motion.button
               onClick={handleParentClick}
               className={`btn-kid ${mode === "parent" ? "btn-primary-kid" : "btn-ghost-kid"}`}
@@ -92,7 +114,16 @@ const Index = () => {
 
       {/* Main content */}
       <AnimatePresence mode="wait">
-        {mode === "parent" ? (
+        {mode === "admin" ? (
+          <motion.div
+            key="admin"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            <AdminDashboard />
+          </motion.div>
+        ) : mode === "parent" ? (
           <motion.div
             key="parent"
             initial={{ opacity: 0, x: 20 }}

@@ -2,89 +2,139 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Morning Coins - Kid-friendly design system
-   Warm golden coin theme with playful animations
-   All colors in HSL */
-
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap');
+/* KidJoy Theme — RTL-friendly, playful, high-contrast */
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap');
 
 @layer base {
   :root {
-    /* Warm cream background */
-    --background: 40 50% 96%;
-    --foreground: 25 30% 20%;
+    /* Core palette */
+    --bg: 216 100% 97%;            /* soft sky #F7FAFF */
+    --surface: 0 0% 100%;          /* cards */
+    --surface-2: 39 100% 95%;      /* warm cream #FFF7E8 */
+    --ink: 222 48% 16%;            /* deep navy #14213D */
+    --muted: 220 22% 45%;          /* #5A6B8A */
 
-    /* Card with subtle warmth */
-    --card: 40 40% 99%;
-    --card-foreground: 25 30% 20%;
+    /* Semantic colors for Tailwind */
+    --background: var(--bg);
+    --foreground: var(--ink);
+    
+    --card: var(--surface);
+    --card-foreground: var(--ink);
+    
+    --popover: var(--surface);
+    --popover-foreground: var(--ink);
 
-    --popover: 40 40% 99%;
-    --popover-foreground: 25 30% 20%;
+    /* Primary - sky blue #3B82F6 */
+    --primary: 217 91% 60%;
+    --primary-700: 217 91% 53%;    /* #2563EB */
+    --primary-foreground: 0 0% 100%;
 
-    /* Golden coin primary */
-    --primary: 50 97.8495% 63.5294%;
-    --primary-foreground: 214 94.5946% 92.7451%;
+    /* Secondary - sunshine #FBBF24 */
+    --secondary: 43 96% 56%;
+    --secondary-foreground: 35 100% 9%;   /* dark brown */
 
-    /* Soft peach secondary */
-    --secondary: 27 95.9799% 60.9804%;
-    --secondary-foreground: 25 40% 30%;
-
-    /* Muted warm gray */
-    --muted: 30 20% 90%;
-    --muted-foreground: 25 15% 50%;
-
-    /* Coral accent */
-    --accent: 15 85% 60%;
+    /* Accent - bubblegum #F472B6 */
+    --accent: 330 81% 70%;
     --accent-foreground: 0 0% 100%;
 
-    /* Success green for completed tasks */
-    --success: 142 70% 45%;
+    /* Success - lime #22C55E */
+    --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
 
-    /* Red for penalties/uncomplete */
-    --destructive: 0 75% 55%;
+    /* Danger - tomato #EF4444 */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 30% 85%;
-    --input: 30 30% 85%;
-    --ring: 38 92% 50%;
+    /* Muted */
+    --muted: 220 22% 45%;
+    --muted-foreground: 220 22% 45%;
 
-    --radius: 1rem;
+    /* Coin colors */
+    --coin: 45 91% 61%;            /* #F6C445 */
+    --coin-2: 43 100% 74%;         /* #FFD978 */
 
-    /* Coin gradient for special elements */
-    --coin-gradient: linear-gradient(135deg, hsl(45 95% 60%) 0%, hsl(38 92% 50%) 50%, hsl(30 85% 45%) 100%);
-    --coin-shadow: 0 4px 20px -4px hsl(38 92% 50% / 0.4);
-    
+    /* Borders & inputs */
+    --border: 222 48% 16% / 0.10;
+    --input: 222 48% 16% / 0.14;
+    --ring: 217 91% 60%;
+
+    /* Radius */
+    --radius: 14px;
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+
+    /* Shadows */
+    --shadow-1: 0 10px 24px rgba(20,33,61,.10);
+    --shadow-2: 0 16px 32px rgba(20,33,61,.14);
+    --shadow-soft: 0 10px 24px rgba(20,33,61,.10);
+    --shadow-lift: 0 16px 32px rgba(20,33,61,.14);
+
+    /* Coin special effects */
+    --coin-gradient: linear-gradient(180deg, hsl(var(--coin-2)) 0%, hsl(var(--coin)) 100%);
+    --coin-shadow: 0 10px 18px rgba(245,158,11,.20);
+
     /* Task card completed glow */
-    --completed-glow: 0 0 20px hsl(142 70% 45% / 0.3);
-    
-    /* Playful shadows */
-    --shadow-soft: 0 4px 24px -8px hsl(25 30% 20% / 0.15);
-    --shadow-lift: 0 8px 32px -8px hsl(25 30% 20% / 0.2);
+    --completed-glow: 0 0 20px hsl(142 71% 45% / 0.3);
 
-    --sidebar-background: 40 50% 96%;
-    --sidebar-foreground: 25 30% 20%;
-    --sidebar-primary: 38 92% 50%;
-    --sidebar-primary-foreground: 25 30% 15%;
-    --sidebar-accent: 25 60% 92%;
-    --sidebar-accent-foreground: 25 40% 30%;
-    --sidebar-border: 30 30% 85%;
-    --sidebar-ring: 38 92% 50%;
+    /* Focus ring */
+    --focus-ring: 0 0 0 4px rgba(59,130,246,.22);
+
+    /* Font sizes */
+    --fs-1: 28px;
+    --fs-2: 20px;
+    --fs-3: 16px;
+    --fs-4: 14px;
+
+    /* Spacing */
+    --space-1: 6px;
+    --space-2: 10px;
+    --space-3: 14px;
+    --space-4: 18px;
+    --space-5: 22px;
+
+    /* Sidebar */
+    --sidebar-background: var(--bg);
+    --sidebar-foreground: var(--ink);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: var(--accent);
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 222 48% 16% / 0.10;
+    --sidebar-ring: var(--primary);
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   html {
-    font-family: 'Rubik', sans-serif;
+    font-family: ui-rounded, 'Rubik', 'Assistant', system-ui, Arial, sans-serif;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     direction: rtl;
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 10% 10%, rgba(244,114,182,.16), transparent 35%),
+      radial-gradient(circle at 90% 12%, rgba(251,191,36,.18), transparent 32%),
+      radial-gradient(circle at 30% 95%, rgba(59,130,246,.14), transparent 38%),
+      hsl(var(--bg));
+  }
+
+  ::selection {
+    background: rgba(251,191,36,.35);
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: 12px;
   }
 }
 
@@ -107,5 +157,239 @@
   
   .completed-glow {
     box-shadow: var(--completed-glow);
+  }
+
+  .kid-container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+}
+
+/* KidJoy Component Classes */
+@layer components {
+  .card-kid {
+    background: hsl(var(--surface));
+    border: 1px solid rgba(20,33,61,.08);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-1);
+    padding: 16px;
+  }
+
+  .card-header-kid {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .h1-kid { font-size: var(--fs-1); font-weight: 900; margin: 0; letter-spacing: -.2px; }
+  .h2-kid { font-size: var(--fs-2); font-weight: 900; margin: 0; }
+  .p-kid { font-size: var(--fs-3); margin: 6px 0 0; color: hsl(var(--muted)); }
+
+  .badge-kid {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(59,130,246,.10);
+    border: 1px solid rgba(59,130,246,.18);
+    font-weight: 900;
+  }
+
+  .coin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(246,196,69,.20);
+    border: 1px solid rgba(246,196,69,.35);
+    font-weight: 900;
+  }
+
+  .btn-kid {
+    border: none;
+    cursor: pointer;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-weight: 900;
+    font-size: 16px;
+    transition: transform .06s ease, box-shadow .12s ease, opacity .12s ease;
+    user-select: none;
+  }
+  .btn-kid:active { transform: translateY(1px) scale(.99); }
+  .btn-kid:disabled { opacity: .55; cursor: not-allowed; }
+
+  .btn-primary-kid {
+    background: linear-gradient(180deg, hsl(var(--primary)), hsl(var(--primary-700)));
+    color: white;
+    box-shadow: 0 10px 18px rgba(37,99,235,.22);
+  }
+
+  .btn-secondary-kid {
+    background: linear-gradient(180deg, hsl(var(--secondary)), #F59E0B);
+    color: #2B1E00;
+    box-shadow: 0 10px 18px rgba(245,158,11,.20);
+  }
+
+  .btn-ghost-kid {
+    background: rgba(20,33,61,.06);
+    color: hsl(var(--ink));
+    border: 1px solid rgba(20,33,61,.10);
+  }
+
+  .tabs-kid {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tab-kid {
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(20,33,61,.10);
+    background: rgba(255,255,255,.70);
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .tab-kid-active {
+    background: rgba(20,33,61,.92);
+    color: white;
+    border-color: rgba(20,33,61,.92);
+  }
+
+  .task-list-kid {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .task-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(20,33,61,.10);
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 8px 14px rgba(20,33,61,.06);
+    cursor: pointer;
+  }
+  .task-row:hover { box-shadow: 0 12px 18px rgba(20,33,61,.10); }
+  .task-row.done {
+    background: rgba(34,197,94,.12);
+    border-color: rgba(34,197,94,.22);
+  }
+
+  .task-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .task-title {
+    font-weight: 900;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .task-meta {
+    font-weight: 900;
+    opacity: .85;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pill-kid {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 999px;
+    background: rgba(244,114,182,.12);
+    border: 1px solid rgba(244,114,182,.22);
+    font-weight: 900;
+  }
+
+  .shop-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .shop-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px;
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(20,33,61,.10);
+    background: rgba(255,255,255,.92);
+  }
+
+  .shop-title { font-weight: 900; }
+  .shop-desc { margin-top: 4px; color: hsl(var(--muted)); font-size: 14px; }
+  .shop-cost { margin-top: 6px; font-weight: 900; }
+
+  .input-kid {
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(20,33,61,.14);
+    background: rgba(255,255,255,.86);
+  }
+
+  .textarea-kid {
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(20,33,61,.14);
+    background: rgba(255,255,255,.86);
+    min-height: 76px;
+    resize: vertical;
+  }
+
+  .kid-toast {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 16px;
+    background: rgba(255,247,232,.92);
+    border: 1px solid rgba(251,191,36,.30);
+    font-weight: 900;
+  }
+
+  .icon-bubble {
+    width: 44px;
+    height: 44px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(59,130,246,.10);
+    border: 1px solid rgba(59,130,246,.18);
+    flex: 0 0 auto;
+  }
+
+  .icon-bubble.pink {
+    background: rgba(244,114,182,.10);
+    border-color: rgba(244,114,182,.18);
+  }
+  .icon-bubble.yellow {
+    background: rgba(251,191,36,.16);
+    border-color: rgba(251,191,36,.24);
+  }
+  .icon-bubble.green {
+    background: rgba(34,197,94,.12);
+    border-color: rgba(34,197,94,.20);
   }
 }

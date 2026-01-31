@@ -57,13 +57,13 @@ export function PinDialog({ isOpen, onClose, onSuccess, correctPin, title = "ה�
           onClick={handleClose}
         >
           <motion.div
-            className="bg-card rounded-3xl p-6 w-full max-w-sm shadow-lift"
+            className="card-kid w-full max-w-sm"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-xl font-bold text-center mb-6">{title}</h2>
+            <h2 className="h2-kid text-center mb-6">{title}</h2>
 
             {/* PIN dots */}
             <div className="flex justify-center gap-4 mb-8">
@@ -76,7 +76,7 @@ export function PinDialog({ isOpen, onClose, onSuccess, correctPin, title = "ה�
                       ? "bg-destructive" 
                       : i < pin.length 
                         ? "bg-primary" 
-                        : "bg-muted"
+                        : "bg-gray-200"
                     }
                   `}
                   animate={error ? { x: [0, -5, 5, -5, 5, 0] } : {}}
@@ -91,12 +91,12 @@ export function PinDialog({ isOpen, onClose, onSuccess, correctPin, title = "ה�
                 <motion.button
                   key={i}
                   className={`
-                    h-16 rounded-2xl text-2xl font-bold
+                    h-16 rounded-2xl text-2xl font-black
                     ${item === null 
                       ? "invisible" 
                       : item === "del"
-                        ? "bg-muted text-muted-foreground"
-                        : "bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground"
+                        ? "btn-kid btn-ghost-kid"
+                        : "btn-kid btn-primary-kid"
                     }
                   `}
                   onClick={() => {
@@ -112,7 +112,7 @@ export function PinDialog({ isOpen, onClose, onSuccess, correctPin, title = "ה�
 
             <button
               onClick={handleClose}
-              className="w-full mt-4 py-3 text-muted-foreground"
+              className="w-full mt-4 py-3 text-muted-foreground font-bold"
             >
               ביטול
             </button>

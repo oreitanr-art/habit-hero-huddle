@@ -70,7 +70,7 @@ const DevPreview = () => {
   );
 
   const renderChildView = () => (
-    <main className="min-h-screen pb-24 kid-container" dir="rtl">
+    <main className="min-h-screen pb-32 kid-container" dir="rtl">
       <motion.header
         className="sticky top-0 z-30 card-kid mb-6"
         initial={{ y: -100 }}
@@ -99,7 +99,7 @@ const DevPreview = () => {
   );
 
   const renderParentView = () => (
-    <main className="min-h-screen pb-24 kid-container" dir="rtl">
+    <main className="min-h-screen pb-32 kid-container" dir="rtl">
       <motion.header
         className="sticky top-0 z-30 card-kid mb-6"
         initial={{ y: -100 }}

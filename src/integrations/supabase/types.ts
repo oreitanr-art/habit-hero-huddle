@@ -14,13 +14,281 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      child_daily_progress: {
+        Row: {
+          all_done_bonus_applied: boolean
+          child_id: string
+          completed_task_ids: string[]
+          created_at: string
+          date: string
+          id: string
+          penalty_applied: boolean
+        }
+        Insert: {
+          all_done_bonus_applied?: boolean
+          child_id: string
+          completed_task_ids?: string[]
+          created_at?: string
+          date: string
+          id?: string
+          penalty_applied?: boolean
+        }
+        Update: {
+          all_done_bonus_applied?: boolean
+          child_id?: string
+          completed_task_ids?: string[]
+          created_at?: string
+          date?: string
+          id?: string
+          penalty_applied?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_daily_progress_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      child_rewards: {
+        Row: {
+          child_id: string
+          cost: number
+          created_at: string
+          icon: string
+          id: string
+          requires_perfect_week: boolean
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          child_id: string
+          cost: number
+          created_at?: string
+          icon?: string
+          id?: string
+          requires_perfect_week?: boolean
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          child_id?: string
+          cost?: number
+          created_at?: string
+          icon?: string
+          id?: string
+          requires_perfect_week?: boolean
+          sort_order?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_rewards_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      child_settings: {
+        Row: {
+          bonus_all_done: number
+          bonus_perfect_week: number
+          bonus_three_day_streak: number
+          child_id: string
+          created_at: string
+          id: string
+          penalty_one_to_four: number
+          penalty_zero_tasks: number
+          pin: string
+          updated_at: string
+        }
+        Insert: {
+          bonus_all_done?: number
+          bonus_perfect_week?: number
+          bonus_three_day_streak?: number
+          child_id: string
+          created_at?: string
+          id?: string
+          penalty_one_to_four?: number
+          penalty_zero_tasks?: number
+          pin?: string
+          updated_at?: string
+        }
+        Update: {
+          bonus_all_done?: number
+          bonus_perfect_week?: number
+          bonus_three_day_streak?: number
+          child_id?: string
+          created_at?: string
+          id?: string
+          penalty_one_to_four?: number
+          penalty_zero_tasks?: number
+          pin?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_settings_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: true
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      child_tasks: {
+        Row: {
+          child_id: string
+          coins: number
+          created_at: string
+          icon: string
+          id: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          child_id: string
+          coins?: number
+          created_at?: string
+          icon?: string
+          id?: string
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          child_id?: string
+          coins?: number
+          created_at?: string
+          icon?: string
+          id?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_tasks_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      child_weekly_coins: {
+        Row: {
+          child_id: string
+          coins: number
+          created_at: string
+          id: string
+          week_key: string
+        }
+        Insert: {
+          child_id: string
+          coins?: number
+          created_at?: string
+          id?: string
+          week_key: string
+        }
+        Update: {
+          child_id?: string
+          coins?: number
+          created_at?: string
+          id?: string
+          week_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "child_weekly_coins_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      children: {
+        Row: {
+          child_name: string
+          created_at: string
+          id: string
+          parent_id: string
+          streak_current: number
+          streak_last_all_done_date: string | null
+          updated_at: string
+          wallet_coins: number
+        }
+        Insert: {
+          child_name: string
+          created_at?: string
+          id?: string
+          parent_id: string
+          streak_current?: number
+          streak_last_all_done_date?: string | null
+          updated_at?: string
+          wallet_coins?: number
+        }
+        Update: {
+          child_name?: string
+          created_at?: string
+          id?: string
+          parent_id?: string
+          streak_current?: number
+          streak_last_all_done_date?: string | null
+          updated_at?: string
+          wallet_coins?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          parent_email: string
+          parent_name: string
+          parent_phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parent_email: string
+          parent_name: string
+          parent_phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parent_email?: string
+          parent_name?: string
+          parent_phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      count_my_children: { Args: never; Returns: number }
+      get_my_profile_id: { Args: never; Returns: string }
+      is_own_child: { Args: { child_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

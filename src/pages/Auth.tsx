@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { RegisterForm } from "@/components/auth/RegisterForm";
-import { CoinIcon } from "@/design/icons";
+import appIcon from "@/assets/app-icon.png";
 
 type AuthView = "login" | "register";
 
@@ -20,12 +20,12 @@ const Auth = () => {
         <div className="text-center mb-8">
           <motion.div
             className="inline-block mb-4"
-            animate={{ rotate: [0, 10, -10, 0] }}
+            animate={{ scale: [1, 1.05, 1] }}
             transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
           >
-            <CoinIcon size={80} />
+            <img src={appIcon} alt="Ready, Set, Coins!" className="w-20 h-20 mx-auto rounded-2xl shadow-lg" />
           </motion.div>
-          <h1 className="h1-kid">Morning Coins</h1>
+          <h1 className="h1-kid">Ready, Set, Coins!</h1>
           <p className="p-kid">
             מערכת תגמול משפחתית לבקרים מוצלחים
           </p>

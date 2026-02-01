@@ -2,43 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
-/* KidJoy Theme — RTL-friendly, playful, high-contrast */
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap');
+/* Ready, Set, Coins! — Brand Theme
+   RTL-friendly, playful, high-contrast kid UI */
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&family=Assistant:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Core palette */
-    --bg: 216 100% 97%;            /* soft sky #F7FAFF */
-    --surface: 0 0% 100%;          /* cards */
+    /* RSC Brand Colors (from brand guidelines) */
+    --rsc-sky: 217 91% 60%;        /* #3B82F6 - Primary Sky */
+    --rsc-gold: 43 96% 56%;        /* #FBBF24 - Coin Gold */
+    --rsc-gold-light: 48 96% 76%;  /* #FDE68A */
+    --rsc-gold-deep: 38 92% 50%;   /* #F59E0B */
+    --rsc-mint: 142 71% 45%;       /* #22C55E - Mint Success */
+    --rsc-coral: 350 89% 72%;      /* #FB7185 - Pop Coral */
+    
+    /* RSC Neutrals */
+    --rsc-bg: 230 100% 98%;        /* #F7F8FF - Background */
+    --rsc-ink: 222 48% 16%;        /* #14213D - Ink/Text */
+    --rsc-white: 0 0% 100%;        /* #FFFFFF */
+    --rsc-border: 222 48% 16% / 0.12;
+
+    /* RSC Radius */
+    --rsc-radius-card: 18px;
+    --rsc-radius-btn: 18px;
+
+    /* RSC Shadow */
+    --rsc-shadow: 0 10px 30px rgba(20,33,61,0.10);
+
+    /* Core palette mapped to Tailwind tokens */
+    --bg: var(--rsc-bg);
+    --surface: var(--rsc-white);
     --surface-2: 39 100% 95%;      /* warm cream #FFF7E8 */
-    --ink: 222 48% 16%;            /* deep navy #14213D */
+    --ink: var(--rsc-ink);
     --muted: 220 22% 45%;          /* #5A6B8A */
 
     /* Semantic colors for Tailwind */
-    --background: var(--bg);
-    --foreground: var(--ink);
+    --background: var(--rsc-bg);
+    --foreground: var(--rsc-ink);
     
-    --card: var(--surface);
-    --card-foreground: var(--ink);
+    --card: var(--rsc-white);
+    --card-foreground: var(--rsc-ink);
     
-    --popover: var(--surface);
-    --popover-foreground: var(--ink);
+    --popover: var(--rsc-white);
+    --popover-foreground: var(--rsc-ink);
 
-    /* Primary - sky blue #3B82F6 */
-    --primary: 217 91% 60%;
+    /* Primary - Sky Blue #3B82F6 */
+    --primary: var(--rsc-sky);
     --primary-700: 217 91% 53%;    /* #2563EB */
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - sunshine #FBBF24 */
-    --secondary: 43 96% 56%;
+    /* Secondary - Coin Gold #FBBF24 */
+    --secondary: var(--rsc-gold);
     --secondary-foreground: 35 100% 9%;   /* dark brown */
 
-    /* Accent - bubblegum #F472B6 */
-    --accent: 330 81% 70%;
+    /* Accent - Pop Coral #FB7185 */
+    --accent: var(--rsc-coral);
     --accent-foreground: 0 0% 100%;
 
-    /* Success - lime #22C55E */
-    --success: 142 71% 45%;
+    /* Success - Mint #22C55E */
+    --success: var(--rsc-mint);
     --success-foreground: 0 0% 100%;
 
     /* Danger - tomato #EF4444 */
@@ -50,41 +72,42 @@
     --muted-foreground: 220 22% 45%;
 
     /* Coin colors */
-    --coin: 45 91% 61%;            /* #F6C445 */
-    --coin-2: 43 100% 74%;         /* #FFD978 */
+    --coin: var(--rsc-gold);
+    --coin-2: var(--rsc-gold-light);
 
     /* Borders & inputs */
-    --border: 222 48% 16% / 0.10;
+    --border: var(--rsc-border);
     --input: 222 48% 16% / 0.14;
-    --ring: 217 91% 60%;
+    --ring: var(--rsc-sky);
 
     /* Radius */
-    --radius: 14px;
+    --radius: var(--rsc-radius-card);
     --radius-xl: 24px;
-    --radius-lg: 18px;
+    --radius-lg: var(--rsc-radius-card);
     --radius-md: 14px;
 
     /* Shadows */
-    --shadow-1: 0 10px 24px rgba(20,33,61,.10);
-    --shadow-2: 0 16px 32px rgba(20,33,61,.14);
-    --shadow-soft: 0 10px 24px rgba(20,33,61,.10);
-    --shadow-lift: 0 16px 32px rgba(20,33,61,.14);
+    --shadow-1: var(--rsc-shadow);
+    --shadow-2: 0 16px 32px rgba(20,33,61,0.14);
+    --shadow-soft: var(--rsc-shadow);
+    --shadow-lift: 0 16px 32px rgba(20,33,61,0.14);
 
-    /* Coin special effects */
-    --coin-gradient: linear-gradient(180deg, hsl(var(--coin-2)) 0%, hsl(var(--coin)) 100%);
-    --coin-shadow: 0 10px 18px rgba(245,158,11,.20);
+    /* Coin special effects (gold gradient) */
+    --coin-gradient: linear-gradient(180deg, hsl(var(--rsc-gold-light)) 0%, hsl(var(--rsc-gold)) 50%, hsl(var(--rsc-gold-deep)) 100%);
+    --coin-shadow: 0 10px 18px rgba(245,158,11,0.20);
 
     /* Task card completed glow */
-    --completed-glow: 0 0 20px hsl(142 71% 45% / 0.3);
+    --completed-glow: 0 0 20px hsl(var(--rsc-mint) / 0.3);
 
     /* Focus ring */
-    --focus-ring: 0 0 0 4px rgba(59,130,246,.22);
+    --focus-ring: 0 0 0 4px rgba(59,130,246,0.22);
 
-    /* Font sizes */
-    --fs-1: 28px;
-    --fs-2: 20px;
-    --fs-3: 16px;
+    /* Font sizes (from brand guidelines) */
+    --fs-1: 28px;    /* Page title: 28-32px */
+    --fs-2: 20px;    /* Section title: 18-20px */
+    --fs-3: 16px;    /* Body: 16-18px */
     --fs-4: 14px;
+    --fs-coin: 20px; /* Coin number badge: 18-22px */
 
     /* Spacing */
     --space-1: 6px;
@@ -94,14 +117,28 @@
     --space-5: 22px;
 
     /* Sidebar */
-    --sidebar-background: var(--bg);
-    --sidebar-foreground: var(--ink);
-    --sidebar-primary: var(--primary);
+    --sidebar-background: var(--rsc-bg);
+    --sidebar-foreground: var(--rsc-ink);
+    --sidebar-primary: var(--rsc-sky);
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: var(--accent);
+    --sidebar-accent: var(--rsc-coral);
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 222 48% 16% / 0.10;
-    --sidebar-ring: var(--primary);
+    --sidebar-border: var(--rsc-border);
+    --sidebar-ring: var(--rsc-sky);
+  }
+
+  /* Dark mode (from brand guidelines) */
+  .dark {
+    --rsc-bg: 220 40% 7%;          /* #0B1220 */
+    --rsc-white: 220 30% 10%;      /* #101A30 - Cards */
+    
+    --background: var(--rsc-bg);
+    --foreground: 230 100% 98%;    /* #F7F8FF text */
+    --card: var(--rsc-white);
+    --card-foreground: 230 100% 98%;
+    --popover: var(--rsc-white);
+    --popover-foreground: 230 100% 98%;
+    --muted-foreground: 220 22% 65%;
   }
 }
 
@@ -112,7 +149,8 @@
   }
 
   html {
-    font-family: ui-rounded, 'Rubik', 'Assistant', system-ui, Arial, sans-serif;
+    /* Brand fonts: Rubik for headlines/numbers, Assistant for body */
+    font-family: 'Rubik', 'Assistant', ui-rounded, system-ui, Arial, sans-serif;
   }
 
   body {
@@ -120,15 +158,16 @@
     direction: rtl;
     margin: 0;
     min-height: 100vh;
+    /* RSC brand background with subtle gradients */
     background:
-      radial-gradient(circle at 10% 10%, rgba(244,114,182,.16), transparent 35%),
-      radial-gradient(circle at 90% 12%, rgba(251,191,36,.18), transparent 32%),
-      radial-gradient(circle at 30% 95%, rgba(59,130,246,.14), transparent 38%),
-      hsl(var(--bg));
+      radial-gradient(circle at 10% 10%, hsl(var(--rsc-coral) / 0.12), transparent 35%),
+      radial-gradient(circle at 90% 12%, hsl(var(--rsc-gold) / 0.14), transparent 32%),
+      radial-gradient(circle at 30% 95%, hsl(var(--rsc-sky) / 0.10), transparent 38%),
+      hsl(var(--background));
   }
 
   ::selection {
-    background: rgba(251,191,36,.35);
+    background: hsl(var(--rsc-gold) / 0.35);
   }
 
   :focus-visible {

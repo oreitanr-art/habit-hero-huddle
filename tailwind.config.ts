@@ -49,6 +49,17 @@ export default {
 			background: 'hsl(var(--background))',
 			foreground: 'hsl(var(--foreground))',
 			ink: 'hsl(var(--ink))',
+			// RSC Brand Colors
+			rsc: {
+				sky: 'hsl(var(--rsc-sky))',
+				gold: 'hsl(var(--rsc-gold))',
+				'gold-light': 'hsl(var(--rsc-gold-light))',
+				'gold-deep': 'hsl(var(--rsc-gold-deep))',
+				mint: 'hsl(var(--rsc-mint))',
+				coral: 'hsl(var(--rsc-coral))',
+				bg: 'hsl(var(--rsc-bg))',
+				ink: 'hsl(var(--rsc-ink))',
+			},
 			primary: {
 				DEFAULT: 'hsl(var(--primary))',
 				700: 'hsl(var(--primary-700))',
@@ -77,7 +88,8 @@ export default {
 			},
 			coin: {
 				DEFAULT: 'hsl(var(--coin))',
-				2: 'hsl(var(--coin-2))'
+				2: 'hsl(var(--coin-2))',
+				deep: 'hsl(var(--rsc-gold-deep))'
 			},
 			popover: {
 				DEFAULT: 'hsl(var(--popover))',

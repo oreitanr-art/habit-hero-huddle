@@ -11,9 +11,26 @@ export function getTodayKey(): string {
   return toISODate(new Date());
 }
 
+// Shop opens Friday 12:00 Israel time, closes Saturday 22:00 Israel time
 export function isShopDay(): boolean {
-  const today = new Date();
-  return isFriday(today) || isSaturday(today);
+  // Get current time in Israel timezone
+  const israelTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Jerusalem" });
+  const now = new Date(israelTime);
+  
+  const day = now.getDay(); // 0=Sun, 5=Fri, 6=Sat
+  const hours = now.getHours();
+  
+  // Friday from 12:00 onwards
+  if (day === 5 && hours >= 12) {
+    return true;
+  }
+  
+  // Saturday until 22:00
+  if (day === 6 && hours < 22) {
+    return true;
+  }
+  
+  return false;
 }
 
 // WeekKey = ISO date of Sunday for the current week (Israel-style week start)

@@ -43,7 +43,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isRecoveryMode } = useAuth();
 
   if (isLoading) {
     return (
@@ -59,7 +59,8 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (user) {
+  // If user is logged in but in recovery mode, let them stay on auth page to reset password
+  if (user && !isRecoveryMode) {
     return <Navigate to="/" replace />;
   }
 

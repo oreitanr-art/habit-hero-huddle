@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const emailSchema = z.object({
@@ -29,16 +30,12 @@ export function ResetPasswordForm({
 }) {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isRecoveryMode, clearRecoveryMode } = useAuth();
   const [isSending, setIsSending] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  const isRecoveryFlow = useMemo(() => {
-    // Supabase recovery links typically set `#...&type=recovery`
-    return (window.location.hash || "").includes("type=recovery");
-  }, []);
 
   const sendResetEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +52,7 @@ export function ResetPasswordForm({
     setIsSending(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(result.data.email, {
-        redirectTo: `${window.location.origin}/auth?reset=1`,
+        redirectTo: `${window.location.origin}/auth`,
       });
 
       if (error) {
@@ -109,8 +106,9 @@ export function ResetPasswordForm({
         description: "מעבירים אותך לאפליקציה...",
       });
 
-      // clear URL fragment/query and go home
-      window.history.replaceState({}, "", "/auth");
+      // Clear recovery mode and navigate home
+      clearRecoveryMode();
+      window.history.replaceState({}, "", "/");
       navigate("/");
     } finally {
       setIsSaving(false);
@@ -119,7 +117,7 @@ export function ResetPasswordForm({
 
   return (
     <div className="card-kid">
-      {isRecoveryFlow ? (
+      {isRecoveryMode ? (
         <>
           <div className="text-center mb-6">
             <h2 className="h2-kid">קביעת סיסמה חדשה</h2>

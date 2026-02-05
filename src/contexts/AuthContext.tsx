@@ -27,6 +27,8 @@ interface AuthContextType {
   selectedChild: Child | null;
   setSelectedChild: (child: Child | null) => void;
   isLoading: boolean;
+  isRecoveryMode: boolean;
+  clearRecoveryMode: () => void;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   refreshChildren: () => Promise<void>;
@@ -41,6 +43,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [childrenList, setChildrenList] = useState<Child[]>([]);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+
+  const clearRecoveryMode = () => setIsRecoveryMode(false);
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -84,6 +89,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        // Check for PASSWORD_RECOVERY event
+        if (event === "PASSWORD_RECOVERY") {
+          setIsRecoveryMode(true);
+        }
+        
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -135,6 +145,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         selectedChild,
         setSelectedChild,
         isLoading,
+        isRecoveryMode,
+        clearRecoveryMode,
         signOut,
         refreshProfile,
         refreshChildren,

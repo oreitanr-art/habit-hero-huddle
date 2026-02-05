@@ -287,6 +287,44 @@ export type Database = {
         }
         Relationships: []
       }
+      reward_purchases: {
+        Row: {
+          child_id: string
+          cost: number
+          id: string
+          purchased_at: string
+          reward_icon: string
+          reward_title: string
+          week_key: string
+        }
+        Insert: {
+          child_id: string
+          cost: number
+          id?: string
+          purchased_at?: string
+          reward_icon?: string
+          reward_title: string
+          week_key: string
+        }
+        Update: {
+          child_id?: string
+          cost?: number
+          id?: string
+          purchased_at?: string
+          reward_icon?: string
+          reward_title?: string
+          week_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_purchases_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string

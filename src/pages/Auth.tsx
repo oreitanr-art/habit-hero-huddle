@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
@@ -8,17 +9,15 @@ import appIcon from "@/assets/app-icon.png";
 type AuthView = "login" | "register" | "reset";
 
 const Auth = () => {
+  const { isRecoveryMode } = useAuth();
   const [view, setView] = useState<AuthView>("login");
 
-  const shouldShowReset = useMemo(() => {
-    const hash = window.location.hash || "";
-    const search = window.location.search || "";
-    return hash.includes("type=recovery") || search.includes("reset=1");
-  }, []);
-
+  // When recovery mode is detected (from onAuthStateChange), show reset form
   useEffect(() => {
-    if (shouldShowReset) setView("reset");
-  }, [shouldShowReset]);
+    if (isRecoveryMode) {
+      setView("reset");
+    }
+  }, [isRecoveryMode]);
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 kid-container" dir="rtl">

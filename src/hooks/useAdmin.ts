@@ -17,6 +17,8 @@ interface Child {
   child_name: string;
   wallet_coins: number;
   streak_current: number;
+  birth_date: string | null;
+  streak_last_all_done_date: string | null;
   created_at: string;
 }
 
@@ -35,6 +37,33 @@ interface ChildReward {
   cost: number;
   icon: string;
   requires_perfect_week: boolean;
+}
+
+interface RewardPurchase {
+  id: string;
+  child_id: string;
+  reward_title: string;
+  reward_icon: string;
+  cost: number;
+  week_key: string;
+  purchased_at: string;
+}
+
+interface DailyProgress {
+  id: string;
+  child_id: string;
+  date: string;
+  completed_task_ids: string[];
+  all_done_bonus_applied: boolean;
+  penalty_applied: boolean;
+  submitted_at: string | null;
+}
+
+interface WeeklyCoins {
+  id: string;
+  child_id: string;
+  week_key: string;
+  coins: number;
 }
 
 interface ChildSettings {
@@ -60,6 +89,9 @@ export interface UserWithDetails extends Profile {
     tasks: ChildTask[];
     rewards: ChildReward[];
     settings: ChildSettings | null;
+    purchases: RewardPurchase[];
+    dailyProgress: DailyProgress[];
+    weeklyCoins: WeeklyCoins[];
   })[];
   role: "admin" | "user" | null;
 }
@@ -144,6 +176,30 @@ export function useAdmin() {
 
       if (rolesError) throw rolesError;
 
+      // Fetch all purchases
+      const { data: purchases, error: purchasesError } = await supabase
+        .from("reward_purchases")
+        .select("*")
+        .order("purchased_at", { ascending: false });
+
+      if (purchasesError) throw purchasesError;
+
+      // Fetch all daily progress
+      const { data: dailyProgress, error: dailyProgressError } = await supabase
+        .from("child_daily_progress")
+        .select("*")
+        .order("date", { ascending: false });
+
+      if (dailyProgressError) throw dailyProgressError;
+
+      // Fetch all weekly coins
+      const { data: weeklyCoins, error: weeklyCoinsError } = await supabase
+        .from("child_weekly_coins")
+        .select("*")
+        .order("week_key", { ascending: false });
+
+      if (weeklyCoinsError) throw weeklyCoinsError;
+
       // Build user details
       const usersWithDetails: UserWithDetails[] = (profiles || []).map((profile) => {
         const userChildren = (children || [])
@@ -153,6 +209,9 @@ export function useAdmin() {
             tasks: (tasks || []).filter((t) => t.child_id === child.id),
             rewards: (rewards || []).filter((r) => r.child_id === child.id),
             settings: (settings || []).find((s) => s.child_id === child.id) || null,
+            purchases: (purchases || []).filter((p) => p.child_id === child.id),
+            dailyProgress: (dailyProgress || []).filter((d) => d.child_id === child.id),
+            weeklyCoins: (weeklyCoins || []).filter((w) => w.child_id === child.id),
           }));
 
         const userRole = (roles || []).find((r) => r.user_id === profile.user_id);

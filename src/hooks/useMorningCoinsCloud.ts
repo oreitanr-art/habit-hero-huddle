@@ -239,6 +239,7 @@ export function useMorningCoinsCloud() {
     if (!reward || store.walletCoins < reward.cost) return false;
 
     const newWalletCoins = store.walletCoins - reward.cost;
+    const weekKey = getWeekKey(new Date());
 
     // Update local state
     setStore((prev) => {
@@ -251,9 +252,19 @@ export function useMorningCoinsCloud() {
 
     // Update database
     try {
+      // Update wallet coins
       await supabase.from("children").update({
         wallet_coins: newWalletCoins,
       }).eq("id", selectedChild.id);
+
+      // Record purchase in history
+      await supabase.from("reward_purchases").insert({
+        child_id: selectedChild.id,
+        reward_title: reward.title,
+        reward_icon: reward.icon,
+        cost: reward.cost,
+        week_key: weekKey,
+      });
 
       return true;
     } catch (error) {

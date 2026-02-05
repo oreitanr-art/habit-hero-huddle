@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import DevPreview from "./pages/DevPreview";
 import ShopPreview from "./pages/ShopPreview";
+import Tutorials from "./pages/Tutorials";
 import { CompleteProfileForm } from "./components/auth/CompleteProfileForm";
 import { motion } from "framer-motion";
 
@@ -98,6 +99,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ShopPreview />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tutorials"
+              element={
+                <ProtectedRoute>
+                  <Tutorials />
                 </ProtectedRoute>
               }
             />

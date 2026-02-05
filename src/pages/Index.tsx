@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMorningCoinsCloud } from "@/hooks/useMorningCoinsCloud";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -9,19 +10,35 @@ import { ParentSettings } from "@/components/morning-coins/ParentSettings";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { PinDialog } from "@/components/morning-coins/PinDialog";
 import { ChildSelector } from "@/components/ChildSelector";
+import { OnboardingTour } from "@/components/tutorials/OnboardingTour";
 import { CoinIcon } from "@/design/icons";
-import { LogOut, Shield } from "lucide-react";
+import { LogOut, Shield, HelpCircle } from "lucide-react";
 
 type Mode = "child" | "parent" | "admin";
 type View = "checklist" | "shop";
 
 const Index = () => {
+  const navigate = useNavigate();
   const { selectedChild, signOut } = useAuth();
   const { store, isLoading, isShopDay } = useMorningCoinsCloud();
   const { isAdmin, isLoading: isAdminLoading } = useAdmin();
   const [mode, setMode] = useState<Mode>("child");
   const [childView, setChildView] = useState<View>("checklist");
   const [showPinDialog, setShowPinDialog] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Check if first time user (show onboarding)
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
+    if (!hasSeenOnboarding && selectedChild) {
+      setShowOnboarding(true);
+    }
+  }, [selectedChild]);
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem("hasSeenOnboarding", "true");
+    setShowOnboarding(false);
+  };
 
   // Update view when shop day changes
   useEffect(() => {
@@ -101,6 +118,15 @@ const Index = () => {
             </motion.button>
 
             <motion.button
+              onClick={() => navigate("/tutorials")}
+              className="btn-kid btn-ghost-kid p-2"
+              whileTap={{ scale: 0.95 }}
+              title="הדרכות"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </motion.button>
+
+            <motion.button
               onClick={signOut}
               className="btn-kid btn-ghost-kid p-2"
               whileTap={{ scale: 0.95 }}
@@ -172,6 +198,13 @@ const Index = () => {
         onClose={() => setShowPinDialog(false)}
         onSuccess={handlePinSuccess}
         correctPin={store.settings.pin}
+      />
+
+      {/* Onboarding Tour for new users */}
+      <OnboardingTour
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onComplete={handleOnboardingComplete}
       />
     </main>
   );

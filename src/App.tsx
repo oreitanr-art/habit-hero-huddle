@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import DevPreview from "./pages/DevPreview";
+import ShopPreview from "./pages/ShopPreview";
 import { CompleteProfileForm } from "./components/auth/CompleteProfileForm";
 import { motion } from "framer-motion";
 
@@ -92,6 +93,14 @@ const App = () => (
               }
             />
             <Route path="/dev" element={<DevPreview />} />
+            <Route
+              path="/shop-preview"
+              element={
+                <ProtectedRoute>
+                  <ShopPreview />
+                </ProtectedRoute>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -49,13 +49,16 @@ export const CompleteProfileForm = () => {
 
     setIsLoading(true);
     try {
-      // Create the profile
-      const { error: profileError } = await supabase.from("profiles").insert({
-        user_id: user.id,
-        parent_name: result.data.parentName,
-        parent_email: user.email || "",
-        parent_phone: result.data.parentPhone || null,
-      });
+      // Create or update the profile using upsert
+      const { error: profileError } = await supabase.from("profiles").upsert(
+        {
+          user_id: user.id,
+          parent_name: result.data.parentName,
+          parent_email: user.email || "",
+          parent_phone: result.data.parentPhone || null,
+        },
+        { onConflict: "user_id" }
+      );
 
       if (profileError) {
         toast({

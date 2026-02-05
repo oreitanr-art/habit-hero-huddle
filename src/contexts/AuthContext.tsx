@@ -52,10 +52,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .from("profiles")
       .select("*")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
     
     if (!error && data) {
       setProfile(data as Profile);
+    } else {
+      setProfile(null);
     }
     return data;
   };

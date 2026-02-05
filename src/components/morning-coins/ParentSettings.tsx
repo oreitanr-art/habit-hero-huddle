@@ -6,6 +6,7 @@ import { Task, Reward } from "@/lib/morning-coins/types";
 import { useToast } from "@/hooks/use-toast";
 import { CoinIcon } from "@/design/icons";
 import { Plus, Trash2 } from "lucide-react";
+import { PendingRewardsSection } from "./PendingRewardsSection";
 
 export function ParentSettings() {
   const { 
@@ -106,6 +107,9 @@ export function ParentSettings() {
 
   return (
     <div className="space-y-6">
+      {/* Pending Rewards Section - shown first when there are pending rewards */}
+      <PendingRewardsSection pin={store.settings.pin} />
+
       {/* Header */}
       <motion.div 
         className="text-center"

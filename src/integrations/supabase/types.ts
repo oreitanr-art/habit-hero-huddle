@@ -291,6 +291,7 @@ export type Database = {
         Row: {
           child_id: string
           cost: number
+          fulfilled_at: string | null
           id: string
           purchased_at: string
           reward_icon: string
@@ -300,6 +301,7 @@ export type Database = {
         Insert: {
           child_id: string
           cost: number
+          fulfilled_at?: string | null
           id?: string
           purchased_at?: string
           reward_icon?: string
@@ -309,6 +311,7 @@ export type Database = {
         Update: {
           child_id?: string
           cost?: number
+          fulfilled_at?: string | null
           id?: string
           purchased_at?: string
           reward_icon?: string

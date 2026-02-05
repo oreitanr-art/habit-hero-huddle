@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAdmin, UserWithDetails } from "@/hooks/useAdmin";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,6 +24,8 @@ import {
   Save,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { EditableTasksTab } from "./EditableTasksTab";
+import { EditableRewardsTab } from "./EditableRewardsTab";
 
 export function AdminDashboard() {
   const {
@@ -259,6 +261,7 @@ export function AdminDashboard() {
                 onSaveChild={handleSaveChild}
                 onCancelEditChild={() => setEditingChild(null)}
                 onDeleteChild={handleDeleteChild}
+                onRefresh={fetchAllUsers}
               />
             ))}
           </div>
@@ -293,6 +296,7 @@ interface UserCardProps {
   onSaveChild: () => void;
   onCancelEditChild: () => void;
   onDeleteChild: (childId: string, childName: string) => void;
+  onRefresh: () => Promise<void>;
 }
 
 function UserCard({
@@ -312,6 +316,7 @@ function UserCard({
   onSaveChild,
   onCancelEditChild,
   onDeleteChild,
+  onRefresh,
 }: UserCardProps) {
   const totalCoins = userProfile.children.reduce(
     (sum, c) => sum + c.wallet_coins,
@@ -460,6 +465,7 @@ function UserCard({
                         editingChild &&
                         onEditChild({ ...editingChild, ...updates })
                       }
+                      onRefresh={onRefresh}
                     />
                   ))}
                 </div>
@@ -491,6 +497,7 @@ interface ChildCardProps {
   onUpdateEditing: (
     updates: Partial<{ wallet_coins: number; streak_current: number }>
   ) => void;
+  onRefresh: () => Promise<void>;
 }
 
 function ChildCard({
@@ -506,6 +513,7 @@ function ChildCard({
   onCancel,
   onDelete,
   onUpdateEditing,
+  onRefresh,
 }: ChildCardProps) {
   const tabs = [
     { id: "info", label: "מידע", icon: Baby },
@@ -591,9 +599,19 @@ function ChildCard({
                     onUpdateEditing={onUpdateEditing}
                   />
                 )}
-                {activeTab === "tasks" && <TasksTab tasks={child.tasks} />}
+                {activeTab === "tasks" && (
+                  <EditableTasksTab 
+                    tasks={child.tasks} 
+                    childId={child.id} 
+                    onRefresh={onRefresh} 
+                  />
+                )}
                 {activeTab === "rewards" && (
-                  <RewardsTab rewards={child.rewards} />
+                  <EditableRewardsTab 
+                    rewards={child.rewards} 
+                    childId={child.id} 
+                    onRefresh={onRefresh} 
+                  />
                 )}
                 {activeTab === "purchases" && (
                   <PurchasesTab purchases={child.purchases} />
@@ -750,74 +768,6 @@ function InfoTab({
     </div>
   );
 }
-
-function TasksTab({
-  tasks,
-}: {
-  tasks: UserWithDetails["children"][0]["tasks"];
-}) {
-  if (tasks.length === 0) {
-    return (
-      <div className="text-center text-muted-foreground py-4">אין מטלות</div>
-    );
-  }
-
-  return (
-    <div className="space-y-1">
-      {tasks.map((task) => (
-        <div
-          key={task.id}
-          className="flex items-center justify-between bg-background/50 rounded-lg px-3 py-2"
-        >
-          <div className="flex items-center gap-2">
-            <span>{task.icon}</span>
-            <span className="text-sm font-medium">{task.title}</span>
-          </div>
-          <span className="coin-badge text-xs">
-            {task.coins} <CoinIcon size={12} />
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function RewardsTab({
-  rewards,
-}: {
-  rewards: UserWithDetails["children"][0]["rewards"];
-}) {
-  if (rewards.length === 0) {
-    return (
-      <div className="text-center text-muted-foreground py-4">אין פרסים</div>
-    );
-  }
-
-  return (
-    <div className="space-y-1">
-      {rewards.map((reward) => (
-        <div
-          key={reward.id}
-          className="flex items-center justify-between bg-background/50 rounded-lg px-3 py-2"
-        >
-          <div className="flex items-center gap-2">
-            <span>{reward.icon}</span>
-            <span className="text-sm font-medium">{reward.title}</span>
-            {reward.requires_perfect_week && (
-              <span className="text-xs bg-warning/20 text-warning-foreground px-1.5 rounded">
-                ⭐
-              </span>
-            )}
-          </div>
-          <span className="coin-badge text-xs">
-            {reward.cost} <CoinIcon size={12} />
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function PurchasesTab({
   purchases,
 }: {

@@ -20,6 +20,9 @@ interface LoginFormProps {
 export const LoginForm = ({ onSwitchToRegister }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [isSendingReset, setIsSendingReset] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { toast } = useToast();
@@ -80,6 +83,40 @@ export const LoginForm = ({ onSwitchToRegister }: LoginFormProps) => {
     }
   };
 
+  const handleSendReset = async () => {
+    const result = z.string().trim().email("אימייל לא תקין").safeParse(forgotEmail);
+    if (!result.success) {
+      toast({
+        title: "שגיאה",
+        description: result.error.issues[0]?.message || "אימייל לא תקין",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSendingReset(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(result.data, {
+        redirectTo: `${window.location.origin}/auth?reset=1`,
+      });
+      if (error) {
+        toast({
+          title: "לא ניתן לשלוח מייל איפוס",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "נשלח מייל איפוס",
+        description: "בדוק את תיבת הדואר (וגם ספאם) ולחץ על הקישור במייל.",
+      });
+      setShowForgot(false);
+    } finally {
+      setIsSendingReset(false);
+    }
+  };
+
   return (
     <div className="card-kid">
       <form onSubmit={handleEmailLogin}>
@@ -108,8 +145,49 @@ export const LoginForm = ({ onSwitchToRegister }: LoginFormProps) => {
               dir="ltr"
               className="input-kid text-left"
             />
+            <div className="text-left">
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotEmail(email);
+                  setShowForgot((v) => !v);
+                }}
+                className="text-primary hover:underline text-sm font-bold"
+              >
+                שכחתי סיסמה
+              </button>
+            </div>
           </div>
         </div>
+
+        {showForgot && (
+          <div className="mt-4 bg-muted/50 rounded-xl p-3 space-y-3">
+            <div className="text-sm font-bold">שליחת קישור איפוס</div>
+            <div className="space-y-2">
+              <Label htmlFor="forgotEmail" className="text-sm">אימייל</Label>
+              <Input
+                id="forgotEmail"
+                type="email"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                dir="ltr"
+                className="input-kid text-left"
+              />
+            </div>
+            <button
+              type="button"
+              className="btn-kid btn-secondary-kid w-full"
+              onClick={handleSendReset}
+              disabled={isSendingReset}
+            >
+              {isSendingReset ? (
+                <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+              ) : (
+                "שלח קישור איפוס"
+              )}
+            </button>
+          </div>
+        )}
 
         <div className="flex flex-col gap-3 mt-6">
           <button

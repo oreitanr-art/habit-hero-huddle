@@ -1,61 +1,72 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { AnimatePresence, motion } from "framer-motion";
+import { StepIndicator } from "./registration/StepIndicator";
+import { ParentNameStep } from "./registration/ParentNameStep";
+import { ChildInfoStep, type ChildData } from "./registration/ChildInfoStep";
+import { AddChildPrompt } from "./registration/AddChildPrompt";
+import { PhoneStep } from "./registration/PhoneStep";
 import { Loader2 } from "lucide-react";
-import { z } from "zod";
-import { motion } from "framer-motion";
+import appIcon from "@/assets/app-icon.png";
 
-const completeProfileSchema = z.object({
-  childName: z.string().trim().min(2, "שם הילד חייב להכיל לפחות 2 תווים").max(50),
-  childBirthDate: z.string().optional(),
-  parentName: z.string().trim().min(2, "שם ההורה חייב להכיל לפחות 2 תווים").max(50),
-  parentPhone: z.string().trim().regex(/^0\d{8,9}$/, "מספר טלפון לא תקין").optional().or(z.literal("")),
-});
+const MAX_CHILDREN = 4;
+
+type WizardStep =
+  | { type: "parentName" }
+  | { type: "childInfo"; index: number }
+  | { type: "addChildPrompt" }
+  | { type: "phone" }
+  | { type: "saving" };
 
 export const CompleteProfileForm = () => {
   const { user, refreshProfile, refreshChildren } = useAuth();
-  const [formData, setFormData] = useState({
-    childName: "",
-    childBirthDate: "",
-    parentName: "",
-    parentPhone: "",
-  });
+  const [step, setStep] = useState<WizardStep>({ type: "parentName" });
+  const [parentName, setParentName] = useState("");
+  const [children, setChildren] = useState<ChildData[]>([{ name: "", birthDate: "" }]);
+  const [phone, setPhone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const updateField = (field: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const getProgressStep = (): number => {
+    switch (step.type) {
+      case "parentName": return 0;
+      case "childInfo": return 1;
+      case "addChildPrompt": return 2;
+      case "phone": return 3;
+      case "saving": return 4;
+      default: return 0;
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const updateChild = (index: number, data: ChildData) => {
+    setChildren((prev) => {
+      const updated = [...prev];
+      updated[index] = data;
+      return updated;
+    });
+  };
 
-    const result = completeProfileSchema.safeParse(formData);
-    if (!result.success) {
-      toast({
-        title: "שגיאה",
-        description: result.error.errors[0].message,
-        variant: "destructive",
-      });
-      return;
-    }
+  const addNewChild = () => {
+    const newIndex = children.length;
+    setChildren((prev) => [...prev, { name: "", birthDate: "" }]);
+    setStep({ type: "childInfo", index: newIndex });
+  };
 
+  const handleFinish = async (phoneValue: string) => {
     if (!user) return;
 
+    setStep({ type: "saving" });
     setIsLoading(true);
     try {
-      // Create or update the profile using upsert
+      // Create or update the profile
       const { error: profileError } = await supabase.from("profiles").upsert(
         {
           user_id: user.id,
-          parent_name: result.data.parentName,
+          parent_name: parentName,
           parent_email: user.email || "",
-          parent_phone: result.data.parentPhone || null,
+          parent_phone: phoneValue || null,
         },
         { onConflict: "user_id" }
       );
@@ -66,6 +77,7 @@ export const CompleteProfileForm = () => {
           description: profileError.message,
           variant: "destructive",
         });
+        setStep({ type: "phone" });
         return;
       }
 
@@ -77,15 +89,15 @@ export const CompleteProfileForm = () => {
         .single();
 
       if (profile) {
-        // Create the first child
-        const { error: childError } = await supabase.from("children").insert({
-          parent_id: profile.id,
-          child_name: result.data.childName,
-          birth_date: result.data.childBirthDate || null,
-        });
-
-        if (childError) {
-          console.error("Error creating child:", childError);
+        for (const child of children) {
+          const { error: childError } = await supabase.from("children").insert({
+            parent_id: profile.id,
+            child_name: child.name,
+            birth_date: child.birthDate || null,
+          });
+          if (childError) {
+            console.error("Error creating child:", childError);
+          }
         }
       }
 
@@ -102,96 +114,107 @@ export const CompleteProfileForm = () => {
   };
 
   return (
-    <main className="min-h-screen bg-background flex items-center justify-center p-4" dir="rtl">
+    <main className="min-h-screen flex items-center justify-center p-4 kid-container" dir="rtl">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <div className="text-center mb-8">
+        {/* Logo */}
+        <div className="text-center mb-6">
           <motion.div
-            className="text-6xl mb-4"
-            animate={{ rotate: [0, 10, -10, 0] }}
+            className="inline-block mb-3"
+            animate={{ scale: [1, 1.05, 1] }}
             transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
           >
-            🪙
+            <img src={appIcon} alt="Ready, Set, Coins!" className="w-16 h-16 mx-auto rounded-2xl shadow-lg" />
           </motion.div>
-          <h1 className="text-3xl font-bold">כמעט סיימנו!</h1>
-          <p className="text-muted-foreground mt-2">
-            מלא את הפרטים האחרונים כדי להתחיל
-          </p>
+          <h1 className="h1-kid">כמעט סיימנו! 🎉</h1>
+          <p className="p-kid">השלימו כמה פרטים ומתחילים</p>
         </div>
 
-        <Card className="shadow-soft">
-          <CardHeader>
-            <CardTitle>השלמת פרטים</CardTitle>
-            <CardDescription>הפרטים האלה יעזרו להתאים את האפליקציה עבורך</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="childName">שם הילד/ה</Label>
-                <Input
-                  id="childName"
-                  type="text"
-                  placeholder="למשל: יוסי"
-                  value={formData.childName}
-                  onChange={(e) => updateField("childName", e.target.value)}
-                />
-              </div>
+        <StepIndicator totalSteps={4} currentStep={getProgressStep()} />
 
-              <div className="space-y-2">
-                <Label htmlFor="childBirthDate">תאריך לידה</Label>
-                <Input
-                  id="childBirthDate"
-                  type="date"
-                  value={formData.childBirthDate}
-                  onChange={(e) => updateField("childBirthDate", e.target.value)}
-                  dir="ltr"
-                  className="text-left"
-                />
-              </div>
+        <AnimatePresence mode="wait">
+          {step.type === "parentName" && (
+            <ParentNameStep
+              key="parentName"
+              value={parentName}
+              onNext={(name) => {
+                setParentName(name);
+                setStep({ type: "childInfo", index: 0 });
+              }}
+            />
+          )}
 
-              <div className="space-y-2">
-                <Label htmlFor="parentName">שם ההורה</Label>
-                <Input
-                  id="parentName"
-                  type="text"
-                  placeholder="למשל: דני"
-                  value={formData.parentName}
-                  onChange={(e) => updateField("parentName", e.target.value)}
-                />
-              </div>
+          {step.type === "childInfo" && (
+            <ChildInfoStep
+              key={`childInfo-${step.index}`}
+              childIndex={step.index}
+              value={children[step.index] || { name: "", birthDate: "" }}
+              onNext={(child) => {
+                updateChild(step.index, child);
+                setStep({ type: "addChildPrompt" });
+              }}
+              onBack={() => {
+                if (step.index === 0) {
+                  setStep({ type: "parentName" });
+                } else {
+                  setStep({ type: "addChildPrompt" });
+                }
+              }}
+            />
+          )}
 
-              <div className="space-y-2">
-                <Label htmlFor="parentPhone">טלפון (אופציונלי)</Label>
-                <Input
-                  id="parentPhone"
-                  type="tel"
-                  placeholder="0501234567"
-                  value={formData.parentPhone}
-                  onChange={(e) => updateField("parentPhone", e.target.value)}
-                  dir="ltr"
-                  className="text-left"
-                />
-              </div>
-            </CardContent>
+          {step.type === "addChildPrompt" && (
+            <AddChildPrompt
+              key="addChildPrompt"
+              childCount={children.length}
+              maxChildren={MAX_CHILDREN}
+              childrenNames={children.map((c) => c.name)}
+              onAddChild={addNewChild}
+              onContinue={() => setStep({ type: "phone" })}
+              onBack={() => {
+                const lastIndex = children.length - 1;
+                setStep({ type: "childInfo", index: lastIndex });
+              }}
+            />
+          )}
 
-            <CardFooter>
-              <Button
-                type="submit"
-                className="w-full coin-gradient text-primary-foreground"
-                disabled={isLoading}
+          {step.type === "phone" && (
+            <PhoneStep
+              key="phone"
+              value={phone}
+              onNext={(p) => {
+                setPhone(p);
+                handleFinish(p);
+              }}
+              onSkip={() => {
+                setPhone("");
+                handleFinish("");
+              }}
+              onBack={() => setStep({ type: "addChildPrompt" })}
+            />
+          )}
+
+          {step.type === "saving" && (
+            <motion.div
+              key="saving"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="card-kid flex flex-col items-center justify-center py-12 gap-4"
+            >
+              <motion.div
+                className="text-5xl"
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
               >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  "בואו נתחיל! 🚀"
-                )}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
+                🪙
+              </motion.div>
+              <p className="h2-kid">מכין את הכל...</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </main>
   );

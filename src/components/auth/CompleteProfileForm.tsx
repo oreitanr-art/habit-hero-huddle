@@ -127,7 +127,7 @@ export const CompleteProfileForm = () => {
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
           >
-            <img src={appIcon} alt="Ready, Set, Coins!" className="w-16 h-16 mx-auto rounded-2xl shadow-lg" />
+            <img src={appIcon} alt="היכון, הכן, צ׳ק!" className="w-16 h-16 mx-auto rounded-2xl shadow-lg" />
           </motion.div>
           <h1 className="h1-kid">כמעט סיימנו! 🎉</h1>
           <p className="p-kid">השלימו כמה פרטים ומתחילים</p>

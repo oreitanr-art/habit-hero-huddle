@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
-import appIcon from "@/assets/app-icon.png";
+import { HeroSection } from "@/components/auth/HeroSection";
 
 type AuthView = "login" | "register" | "reset";
 
@@ -12,7 +12,6 @@ const Auth = () => {
   const { isRecoveryMode } = useAuth();
   const [view, setView] = useState<AuthView>("login");
 
-  // When recovery mode is detected (from onAuthStateChange), show reset form
   useEffect(() => {
     if (isRecoveryMode) {
       setView("reset");
@@ -24,72 +23,81 @@ const Auth = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative"
       >
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <motion.div
-            className="inline-block mb-4"
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
-          >
-            <img src={appIcon} alt="Ready, Set, Coins!" className="w-20 h-20 mx-auto rounded-2xl shadow-lg" />
-          </motion.div>
-          <h1 className="h1-kid">Ready, Set, Coins!</h1>
-          <p className="p-kid">
-            מערכת תגמול משפחתית לבקרים מוצלחים
-          </p>
-        </div>
+        {/* Hero section with branding */}
+        <HeroSection />
 
         {/* Auth tabs */}
         {view !== "reset" && (
-          <div className="tabs-kid mb-6">
+          <motion.div
+            className="tabs-kid mb-5"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
             <button
               onClick={() => setView("login")}
-              className={`tab-kid flex-1 ${view === "login" ? "tab-kid-active" : ""}`}
+              className={`tab-kid flex-1 transition-all duration-200 ${view === "login" ? "tab-kid-active" : ""}`}
             >
-              התחברות
+              כבר יש לי חשבון
             </button>
             <button
               onClick={() => setView("register")}
-              className={`tab-kid flex-1 ${view === "register" ? "tab-kid-active" : ""}`}
+              className={`tab-kid flex-1 transition-all duration-200 ${view === "register" ? "tab-kid-active" : ""}`}
             >
-              הרשמה
+              בואו נתחיל! 🎉
             </button>
-          </div>
+          </motion.div>
         )}
 
         {/* Forms */}
-        <AnimatePresence mode="wait">
-          {view === "login" ? (
-            <motion.div
-              key="login"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-            >
-              <LoginForm onSwitchToRegister={() => setView("register")} />
-            </motion.div>
-          ) : view === "register" ? (
-            <motion.div
-              key="register"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              <RegisterForm onSwitchToLogin={() => setView("login")} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="reset"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              <ResetPasswordForm onBackToLogin={() => setView("login")} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <AnimatePresence mode="wait">
+            {view === "login" ? (
+              <motion.div
+                key="login"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <LoginForm onSwitchToRegister={() => setView("register")} />
+              </motion.div>
+            ) : view === "register" ? (
+              <motion.div
+                key="register"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <RegisterForm onSwitchToLogin={() => setView("login")} />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="reset"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <ResetPasswordForm onBackToLogin={() => setView("login")} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Social proof */}
+        <motion.p
+          className="text-center text-xs text-muted-foreground mt-6 opacity-70"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.7 }}
+          transition={{ delay: 1 }}
+        >
+          ✨ מאות משפחות כבר משתמשות
+        </motion.p>
       </motion.div>
     </main>
   );

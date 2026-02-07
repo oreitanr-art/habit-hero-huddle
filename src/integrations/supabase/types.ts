@@ -18,9 +18,13 @@ export type Database = {
         Row: {
           all_done_bonus_applied: boolean
           child_id: string
+          completed_evening_task_ids: string[]
           completed_task_ids: string[]
           created_at: string
           date: string
+          evening_all_done_bonus_applied: boolean
+          evening_penalty_applied: boolean
+          evening_submitted_at: string | null
           id: string
           penalty_applied: boolean
           submitted_at: string | null
@@ -28,9 +32,13 @@ export type Database = {
         Insert: {
           all_done_bonus_applied?: boolean
           child_id: string
+          completed_evening_task_ids?: string[]
           completed_task_ids?: string[]
           created_at?: string
           date: string
+          evening_all_done_bonus_applied?: boolean
+          evening_penalty_applied?: boolean
+          evening_submitted_at?: string | null
           id?: string
           penalty_applied?: boolean
           submitted_at?: string | null
@@ -38,9 +46,13 @@ export type Database = {
         Update: {
           all_done_bonus_applied?: boolean
           child_id?: string
+          completed_evening_task_ids?: string[]
           completed_task_ids?: string[]
           created_at?: string
           date?: string
+          evening_all_done_bonus_applied?: boolean
+          evening_penalty_applied?: boolean
+          evening_submitted_at?: string | null
           id?: string
           penalty_applied?: boolean
           submitted_at?: string | null
@@ -151,6 +163,7 @@ export type Database = {
           icon: string
           id: string
           sort_order: number
+          task_period: string
           title: string
         }
         Insert: {
@@ -160,6 +173,7 @@ export type Database = {
           icon?: string
           id?: string
           sort_order?: number
+          task_period?: string
           title: string
         }
         Update: {
@@ -169,6 +183,7 @@ export type Database = {
           icon?: string
           id?: string
           sort_order?: number
+          task_period?: string
           title?: string
         }
         Relationships: [

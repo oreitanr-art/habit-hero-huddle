@@ -8,7 +8,13 @@ export function ensureDaily(store: Store, date: string): Store {
     ...store,
     dailyByDate: {
       ...store.dailyByDate,
-      [date]: { date, completedTaskIds: [], allDoneBonusApplied: false },
+      [date]: {
+        date,
+        completedTaskIds: [],
+        completedEveningTaskIds: [],
+        allDoneBonusApplied: false,
+        eveningAllDoneBonusApplied: false,
+      },
     },
   };
 }

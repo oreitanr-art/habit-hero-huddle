@@ -28,6 +28,7 @@ interface ChildTask {
   title: string;
   coins: number;
   icon: string;
+  task_period?: string;
 }
 
 interface ChildReward {

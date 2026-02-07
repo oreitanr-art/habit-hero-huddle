@@ -1,10 +1,13 @@
 // Morning Coins - Type definitions
 
+export type TaskPeriod = 'morning' | 'evening';
+
 export interface Task {
   id: string;
   title: string;
   coins: number;
   icon: string; // Emoji icon
+  taskPeriod: TaskPeriod;
 }
 
 export interface Reward {
@@ -35,9 +38,13 @@ export interface Settings {
 export interface DailyStatus {
   date: string; // YYYY-MM-DD
   completedTaskIds: string[];
+  completedEveningTaskIds: string[];
   allDoneBonusApplied: boolean;
+  eveningAllDoneBonusApplied: boolean;
   penaltyApplied?: boolean;
-  submittedAt?: string; // ISO timestamp - when set, day is locked
+  eveningPenaltyApplied?: boolean;
+  submittedAt?: string; // ISO timestamp - when set, morning is locked
+  eveningSubmittedAt?: string; // ISO timestamp - when set, evening is locked
 }
 
 export interface Streak {
@@ -46,7 +53,7 @@ export interface Streak {
 }
 
 export interface Store {
-  tasks: Task[];
+  tasks: Task[]; // All tasks (morning + evening)
   rewards: Reward[];
   settings: Settings;
   walletCoins: number;

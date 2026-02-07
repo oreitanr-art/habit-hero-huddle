@@ -2,18 +2,18 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useMorningCoinsCloud } from "@/hooks/useMorningCoinsCloud";
 import { useAuth } from "@/contexts/AuthContext";
-import { Task, Reward } from "@/lib/morning-coins/types";
+import { Task, Reward, TaskPeriod } from "@/lib/morning-coins/types";
 import { useToast } from "@/hooks/use-toast";
 import { CoinIcon } from "@/design/icons";
 import { Plus, Trash2 } from "lucide-react";
 import { PendingRewardsSection } from "./PendingRewardsSection";
 
 export function ParentSettings() {
-  const { 
-    store, 
-    updateSettings, 
-    updateTask, 
-    deleteTask, 
+  const {
+    store,
+    updateSettings,
+    updateTask,
+    deleteTask,
     addTask,
     updateReward,
     deleteReward,
@@ -21,16 +21,19 @@ export function ParentSettings() {
   } = useMorningCoinsCloud();
   const { selectedChild } = useAuth();
   const { toast } = useToast();
-  
+
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingReward, setEditingReward] = useState<Reward | null>(null);
   const [newPin, setNewPin] = useState("");
-  const [showAddTask, setShowAddTask] = useState(false);
+  const [showAddTask, setShowAddTask] = useState<TaskPeriod | null>(null);
   const [showAddReward, setShowAddReward] = useState(false);
   const [newTask, setNewTask] = useState({ title: "", coins: 2, icon: "✅" });
   const [newReward, setNewReward] = useState({ title: "", cost: 10, icon: "🎁", requiresPerfectWeek: false });
 
   if (!store || !selectedChild) return null;
+
+  const morningTasks = store.tasks.filter((t) => t.taskPeriod === 'morning');
+  const eveningTasks = store.tasks.filter((t) => t.taskPeriod === 'evening');
 
   const handleUpdatePin = async () => {
     if (newPin.length === 4) {
@@ -52,11 +55,11 @@ export function ParentSettings() {
     toast({ title: "המטלה נמחקה" });
   };
 
-  const handleAddTask = async () => {
+  const handleAddTask = async (period: TaskPeriod) => {
     if (!newTask.title.trim()) return;
-    await addTask(newTask);
+    await addTask({ ...newTask, taskPeriod: period });
     setNewTask({ title: "", coins: 2, icon: "✅" });
-    setShowAddTask(false);
+    setShowAddTask(null);
     toast({ title: "המטלה נוספה!" });
   };
 
@@ -81,52 +84,77 @@ export function ParentSettings() {
   };
 
   const handleUpdateBonuses = async (key: string, value: number) => {
-    await updateSettings({
-      bonuses: { ...store.settings.bonuses, [key]: value }
-    });
+    await updateSettings({ bonuses: { ...store.settings.bonuses, [key]: value } });
   };
 
   const handleUpdatePenalties = async (key: string, value: number) => {
-    await updateSettings({
-      penalties: { ...store.settings.penalties, [key]: value }
-    });
+    await updateSettings({ penalties: { ...store.settings.penalties, [key]: value } });
   };
 
-  // Calculate age from birth date
   const calculateAge = (birthDate: string | null): string => {
     if (!birthDate) return "לא הוזן";
     const birth = new Date(birthDate);
     const today = new Date();
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
     return `${age} שנים`;
   };
 
+  const renderTaskList = (tasks: Task[], period: TaskPeriod, label: string, emoji: string) => (
+    <motion.div
+      className="card-kid"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="h2-kid">{emoji} {label}</h2>
+        <button
+          onClick={() => { setShowAddTask(period); setNewTask({ title: "", coins: 2, icon: "✅" }); }}
+          className="btn-kid btn-primary-kid flex items-center gap-1 py-2 px-3 text-sm"
+        >
+          <Plus className="h-4 w-4" />
+          הוסף
+        </button>
+      </div>
+      <div className="space-y-2">
+        {tasks.map((task) => (
+          <div key={task.id} className="task-row">
+            <div className="task-left">
+              <div className="icon-bubble yellow">
+                <span className="text-xl">{task.icon}</span>
+              </div>
+              <span className="task-title">{task.title}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="coin-badge">{task.coins} <CoinIcon size={16} /></span>
+              <button
+                onClick={() => setEditingTask(task)}
+                className="btn-kid btn-ghost-kid py-1 px-3 text-sm"
+              >
+                ערוך
+              </button>
+            </div>
+          </div>
+        ))}
+        {tasks.length === 0 && (
+          <p className="text-center text-muted-foreground py-4">אין מטלות עדיין</p>
+        )}
+      </div>
+    </motion.div>
+  );
+
   return (
     <div className="space-y-6">
-      {/* Pending Rewards Section - shown first when there are pending rewards */}
       <PendingRewardsSection pin={store.settings.pin} />
 
       {/* Header */}
-      <motion.div 
-        className="text-center"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <h1 className="h1-kid mb-2">
-          הגדרות - {selectedChild.child_name} ⚙️
-        </h1>
+      <motion.div className="text-center" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+        <h1 className="h1-kid mb-2">הגדרות - {selectedChild.child_name} ⚙️</h1>
       </motion.div>
 
       {/* Child info */}
-      <motion.div 
-        className="card-kid"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
+      <motion.div className="card-kid" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h2 className="h2-kid mb-2">פרטי הילד/ה</h2>
         <div className="flex items-center gap-4 text-lg flex-wrap">
           <span>👦 שם: <strong>{selectedChild.child_name}</strong></span>
@@ -135,12 +163,7 @@ export function ParentSettings() {
       </motion.div>
 
       {/* Wallet status */}
-      <motion.div 
-        className="card-kid"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.05 }}
-      >
+      <motion.div className="card-kid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}>
         <h2 className="h2-kid mb-2">סטטוס נוכחי</h2>
         <div className="flex items-center gap-4 text-lg">
           <span className="flex items-center gap-1">בארנק: <strong>{store.walletCoins}</strong> <CoinIcon size={20} /></span>
@@ -149,23 +172,16 @@ export function ParentSettings() {
       </motion.div>
 
       {/* PIN Settings */}
-      <motion.div 
-        className="card-kid"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-      >
+      <motion.div className="card-kid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
         <h2 className="h2-kid mb-3">קוד הורה</h2>
-        <p className="p-kid mb-3">
-          קוד נוכחי: {store.settings.pin}
-        </p>
+        <p className="p-kid mb-3">קוד נוכחי: {store.settings.pin}</p>
         <div className="flex gap-2">
           <input
             type="password"
             maxLength={4}
             placeholder="קוד חדש (4 ספרות)"
             value={newPin}
-            onChange={e => setNewPin(e.target.value.replace(/\D/g, ""))}
+            onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
             className="input-kid flex-1"
           />
           <button
@@ -178,55 +194,16 @@ export function ParentSettings() {
         </div>
       </motion.div>
 
-      {/* Tasks Management */}
-      <motion.div 
-        className="card-kid"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="h2-kid">מטלות</h2>
-          <button
-            onClick={() => setShowAddTask(true)}
-            className="btn-kid btn-primary-kid flex items-center gap-1 py-2 px-3 text-sm"
-          >
-            <Plus className="h-4 w-4" />
-            הוסף
-          </button>
-        </div>
-        <div className="space-y-2">
-          {store.tasks.map(task => (
-            <div key={task.id} className="task-row">
-              <div className="task-left">
-                <div className="icon-bubble yellow">
-                  <span className="text-xl">{task.icon}</span>
-                </div>
-                <span className="task-title">{task.title}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="coin-badge">{task.coins} <CoinIcon size={16} /></span>
-                <button
-                  onClick={() => setEditingTask(task)}
-                  className="btn-kid btn-ghost-kid py-1 px-3 text-sm"
-                >
-                  ערוך
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
+      {/* Morning Tasks */}
+      {renderTaskList(morningTasks, 'morning', 'מטלות בוקר', '☀️')}
+
+      {/* Evening Tasks */}
+      {renderTaskList(eveningTasks, 'evening', 'מטלות ערב', '🌙')}
 
       {/* Rewards Management */}
-      <motion.div 
-        className="card-kid"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-      >
+      <motion.div className="card-kid" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="h2-kid">פרסים</h2>
+          <h2 className="h2-kid">🎁 פרסים</h2>
           <button
             onClick={() => setShowAddReward(true)}
             className="btn-kid btn-primary-kid flex items-center gap-1 py-2 px-3 text-sm"
@@ -236,7 +213,7 @@ export function ParentSettings() {
           </button>
         </div>
         <div className="space-y-2">
-          {store.rewards.map(reward => (
+          {store.rewards.map((reward) => (
             <div key={reward.id} className="task-row">
               <div className="task-left">
                 <div className="icon-bubble pink">
@@ -260,20 +237,15 @@ export function ParentSettings() {
       </motion.div>
 
       {/* Bonuses */}
-      <motion.div 
-        className="card-kid"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-      >
+      <motion.div className="card-kid" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h2 className="h2-kid mb-3">בונוסים</h2>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span>סיום יומי מלא</span>
+            <span>סיום יומי מלא (בוקר/ערב)</span>
             <input
               type="number"
               value={store.settings.bonuses.allDoneDailyBonus}
-              onChange={e => handleUpdateBonuses("allDoneDailyBonus", Number(e.target.value))}
+              onChange={(e) => handleUpdateBonuses("allDoneDailyBonus", Number(e.target.value))}
               className="input-kid w-20 text-center"
             />
           </div>
@@ -282,7 +254,7 @@ export function ParentSettings() {
             <input
               type="number"
               value={store.settings.bonuses.threeDayStreakBonus}
-              onChange={e => handleUpdateBonuses("threeDayStreakBonus", Number(e.target.value))}
+              onChange={(e) => handleUpdateBonuses("threeDayStreakBonus", Number(e.target.value))}
               className="input-kid w-20 text-center"
             />
           </div>
@@ -291,7 +263,7 @@ export function ParentSettings() {
             <input
               type="number"
               value={store.settings.bonuses.perfectWeekBonus}
-              onChange={e => handleUpdateBonuses("perfectWeekBonus", Number(e.target.value))}
+              onChange={(e) => handleUpdateBonuses("perfectWeekBonus", Number(e.target.value))}
               className="input-kid w-20 text-center"
             />
           </div>
@@ -299,12 +271,7 @@ export function ParentSettings() {
       </motion.div>
 
       {/* Penalties */}
-      <motion.div 
-        className="card-kid"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
+      <motion.div className="card-kid" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h2 className="h2-kid mb-3">קנסות (ערכים שליליים)</h2>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -312,7 +279,7 @@ export function ParentSettings() {
             <input
               type="number"
               value={store.settings.penalties.zeroTasks}
-              onChange={e => handleUpdatePenalties("zeroTasks", Number(e.target.value))}
+              onChange={(e) => handleUpdatePenalties("zeroTasks", Number(e.target.value))}
               className="input-kid w-20 text-center"
             />
           </div>
@@ -321,7 +288,7 @@ export function ParentSettings() {
             <input
               type="number"
               value={store.settings.penalties.oneToFour}
-              onChange={e => handleUpdatePenalties("oneToFour", Number(e.target.value))}
+              onChange={(e) => handleUpdatePenalties("oneToFour", Number(e.target.value))}
               className="input-kid w-20 text-center"
             />
           </div>
@@ -332,36 +299,38 @@ export function ParentSettings() {
       {showAddTask && (
         <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50 p-4">
           <div className="card-kid w-full max-w-sm">
-            <h2 className="h2-kid mb-4">הוסף מטלה</h2>
+            <h2 className="h2-kid mb-4">
+              הוסף מטלה {showAddTask === 'morning' ? '☀️' : '🌙'}
+            </h2>
             <div className="space-y-3">
               <input
                 value={newTask.title}
-                onChange={e => setNewTask({ ...newTask, title: e.target.value })}
+                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                 className="input-kid w-full"
                 placeholder="שם המטלה"
               />
               <input
                 value={newTask.icon}
-                onChange={e => setNewTask({ ...newTask, icon: e.target.value })}
+                onChange={(e) => setNewTask({ ...newTask, icon: e.target.value })}
                 className="input-kid w-full text-center text-3xl"
                 placeholder="אייקון"
               />
               <input
                 type="number"
                 value={newTask.coins}
-                onChange={e => setNewTask({ ...newTask, coins: Number(e.target.value) })}
+                onChange={(e) => setNewTask({ ...newTask, coins: Number(e.target.value) })}
                 className="input-kid w-full"
                 placeholder="מטבעות"
               />
               <div className="flex gap-2">
                 <button
-                  onClick={() => setShowAddTask(false)}
+                  onClick={() => setShowAddTask(null)}
                   className="btn-kid btn-ghost-kid flex-1"
                 >
                   ביטול
                 </button>
                 <button
-                  onClick={handleAddTask}
+                  onClick={() => handleAddTask(showAddTask)}
                   className="btn-kid btn-secondary-kid flex-1"
                 >
                   הוסף
@@ -380,20 +349,20 @@ export function ParentSettings() {
             <div className="space-y-3">
               <input
                 value={newReward.title}
-                onChange={e => setNewReward({ ...newReward, title: e.target.value })}
+                onChange={(e) => setNewReward({ ...newReward, title: e.target.value })}
                 className="input-kid w-full"
                 placeholder="שם הפרס"
               />
               <input
                 value={newReward.icon}
-                onChange={e => setNewReward({ ...newReward, icon: e.target.value })}
+                onChange={(e) => setNewReward({ ...newReward, icon: e.target.value })}
                 className="input-kid w-full text-center text-3xl"
                 placeholder="אייקון"
               />
               <input
                 type="number"
                 value={newReward.cost}
-                onChange={e => setNewReward({ ...newReward, cost: Number(e.target.value) })}
+                onChange={(e) => setNewReward({ ...newReward, cost: Number(e.target.value) })}
                 className="input-kid w-full"
                 placeholder="מחיר"
               />
@@ -401,24 +370,14 @@ export function ParentSettings() {
                 <input
                   type="checkbox"
                   checked={newReward.requiresPerfectWeek}
-                  onChange={e => setNewReward({ ...newReward, requiresPerfectWeek: e.target.checked })}
+                  onChange={(e) => setNewReward({ ...newReward, requiresPerfectWeek: e.target.checked })}
                   className="w-5 h-5"
                 />
                 <span>דורש שבוע מושלם</span>
               </label>
               <div className="flex gap-2">
-                <button
-                  onClick={() => setShowAddReward(false)}
-                  className="btn-kid btn-ghost-kid flex-1"
-                >
-                  ביטול
-                </button>
-                <button
-                  onClick={handleAddReward}
-                  className="btn-kid btn-secondary-kid flex-1"
-                >
-                  הוסף
-                </button>
+                <button onClick={() => setShowAddReward(false)} className="btn-kid btn-ghost-kid flex-1">ביטול</button>
+                <button onClick={handleAddReward} className="btn-kid btn-secondary-kid flex-1">הוסף</button>
               </div>
             </div>
           </div>
@@ -429,24 +388,26 @@ export function ParentSettings() {
       {editingTask && (
         <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50 p-4">
           <div className="card-kid w-full max-w-sm">
-            <h2 className="h2-kid mb-4">עריכת מטלה</h2>
+            <h2 className="h2-kid mb-4">
+              עריכת מטלה {editingTask.taskPeriod === 'morning' ? '☀️' : '🌙'}
+            </h2>
             <div className="space-y-3">
               <input
                 value={editingTask.title}
-                onChange={e => setEditingTask({ ...editingTask, title: e.target.value })}
+                onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
                 className="input-kid w-full"
                 placeholder="שם המטלה"
               />
               <input
                 value={editingTask.icon}
-                onChange={e => setEditingTask({ ...editingTask, icon: e.target.value })}
+                onChange={(e) => setEditingTask({ ...editingTask, icon: e.target.value })}
                 className="input-kid w-full text-center text-3xl"
                 placeholder="אייקון"
               />
               <input
                 type="number"
                 value={editingTask.coins}
-                onChange={e => setEditingTask({ ...editingTask, coins: Number(e.target.value) })}
+                onChange={(e) => setEditingTask({ ...editingTask, coins: Number(e.target.value) })}
                 className="input-kid w-full"
                 placeholder="מטבעות"
               />
@@ -457,18 +418,8 @@ export function ParentSettings() {
                 >
                   <Trash2 className="h-5 w-5" />
                 </button>
-                <button
-                  onClick={() => setEditingTask(null)}
-                  className="btn-kid btn-ghost-kid flex-1"
-                >
-                  ביטול
-                </button>
-                <button
-                  onClick={() => handleSaveTask(editingTask)}
-                  className="btn-kid btn-secondary-kid flex-1"
-                >
-                  שמור
-                </button>
+                <button onClick={() => setEditingTask(null)} className="btn-kid btn-ghost-kid flex-1">ביטול</button>
+                <button onClick={() => handleSaveTask(editingTask)} className="btn-kid btn-secondary-kid flex-1">שמור</button>
               </div>
             </div>
           </div>
@@ -483,20 +434,20 @@ export function ParentSettings() {
             <div className="space-y-3">
               <input
                 value={editingReward.title}
-                onChange={e => setEditingReward({ ...editingReward, title: e.target.value })}
+                onChange={(e) => setEditingReward({ ...editingReward, title: e.target.value })}
                 className="input-kid w-full"
                 placeholder="שם הפרס"
               />
               <input
                 value={editingReward.icon}
-                onChange={e => setEditingReward({ ...editingReward, icon: e.target.value })}
+                onChange={(e) => setEditingReward({ ...editingReward, icon: e.target.value })}
                 className="input-kid w-full text-center text-3xl"
                 placeholder="אייקון"
               />
               <input
                 type="number"
                 value={editingReward.cost}
-                onChange={e => setEditingReward({ ...editingReward, cost: Number(e.target.value) })}
+                onChange={(e) => setEditingReward({ ...editingReward, cost: Number(e.target.value) })}
                 className="input-kid w-full"
                 placeholder="מחיר"
               />
@@ -504,7 +455,7 @@ export function ParentSettings() {
                 <input
                   type="checkbox"
                   checked={editingReward.requiresPerfectWeek || false}
-                  onChange={e => setEditingReward({ ...editingReward, requiresPerfectWeek: e.target.checked })}
+                  onChange={(e) => setEditingReward({ ...editingReward, requiresPerfectWeek: e.target.checked })}
                   className="w-5 h-5"
                 />
                 <span>דורש שבוע מושלם</span>
@@ -516,18 +467,8 @@ export function ParentSettings() {
                 >
                   <Trash2 className="h-5 w-5" />
                 </button>
-                <button
-                  onClick={() => setEditingReward(null)}
-                  className="btn-kid btn-ghost-kid flex-1"
-                >
-                  ביטול
-                </button>
-                <button
-                  onClick={() => handleSaveReward(editingReward)}
-                  className="btn-kid btn-secondary-kid flex-1"
-                >
-                  שמור
-                </button>
+                <button onClick={() => setEditingReward(null)} className="btn-kid btn-ghost-kid flex-1">ביטול</button>
+                <button onClick={() => handleSaveReward(editingReward)} className="btn-kid btn-secondary-kid flex-1">שמור</button>
               </div>
             </div>
           </div>

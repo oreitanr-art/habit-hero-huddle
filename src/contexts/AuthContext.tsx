@@ -105,13 +105,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setTimeout(async () => {
             await fetchProfile(session.user.id);
             await fetchChildren();
+            setIsLoading(false);
           }, 0);
         } else {
           setProfile(null);
           setChildrenList([]);
           setSelectedChild(null);
+          setIsLoading(false);
         }
-        setIsLoading(false);
       }
     );
 

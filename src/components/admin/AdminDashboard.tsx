@@ -876,7 +876,9 @@ function ProgressTab({
                 </span>
                 <div className="flex items-center gap-2">
                   <span>
-                    {day.completed_task_ids.length}/{tasks.length} מטלות
+                    ☀️ {day.completed_task_ids.length}/{tasks.filter((t: any) => (t.task_period || 'morning') === 'morning').length}
+                    {" | "}
+                    🌙 {((day as any).completed_evening_task_ids || []).length}/{tasks.filter((t: any) => t.task_period === 'evening').length}
                   </span>
                   {day.all_done_bonus_applied && (
                     <Check className="h-3 w-3 text-primary" />

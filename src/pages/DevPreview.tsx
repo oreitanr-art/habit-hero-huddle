@@ -93,7 +93,7 @@ const DevPreview = () => {
           {mockStore.tasks.map((task, index) => (
             <TaskCard
               key={task.id}
-              task={{ id: task.id, title: task.title, coins: task.coins, icon: task.icon }}
+              task={{ id: task.id, title: task.title, coins: task.coins, icon: task.icon, taskPeriod: 'morning' }}
               isCompleted={completedSet.has(task.id)}
               onToggle={() => handleToggleTask(task.id)}
               index={index}

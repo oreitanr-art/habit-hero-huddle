@@ -1,17 +1,27 @@
-import { Store } from "./types";
+import { Store, Task } from "./types";
 
-export const DEFAULT_TASKS = [
-  { id: "t1", title: "התעוררתי בחיוך", coins: 2, icon: "😊" },
-  { id: "t2", title: "הייתי בשירותים", coins: 2, icon: "🚽" },
-  { id: "t3", title: "שטפתי פנים", coins: 2, icon: "💧" },
-  { id: "t4", title: "צחצחתי שיניים", coins: 4, icon: "🦷" },
-  { id: "t5", title: "הסתרקתי", coins: 2, icon: "💇" },
-  { id: "t6", title: "התלבשתי", coins: 4, icon: "👕" },
-  { id: "t7", title: "נעלתי נעליים", coins: 2, icon: "👟" },
-  { id: "t8", title: "סידרתי את המיטה", coins: 4, icon: "🛏️" },
-  { id: "t9", title: "הכנסתי אוכל ומים לתיק", coins: 4, icon: "🎒" },
-  { id: "t10", title: "אכלתי ארוחת בוקר", coins: 4, icon: "🍳" },
+export const DEFAULT_MORNING_TASKS: Task[] = [
+  { id: "t1", title: "התעוררתי בחיוך", coins: 2, icon: "😊", taskPeriod: "morning" },
+  { id: "t2", title: "הייתי בשירותים", coins: 2, icon: "🚽", taskPeriod: "morning" },
+  { id: "t3", title: "שטפתי פנים", coins: 2, icon: "💧", taskPeriod: "morning" },
+  { id: "t4", title: "צחצחתי שיניים", coins: 4, icon: "🦷", taskPeriod: "morning" },
+  { id: "t5", title: "הסתרקתי", coins: 2, icon: "💇", taskPeriod: "morning" },
+  { id: "t6", title: "התלבשתי", coins: 4, icon: "👕", taskPeriod: "morning" },
+  { id: "t7", title: "נעלתי נעליים", coins: 2, icon: "👟", taskPeriod: "morning" },
+  { id: "t8", title: "סידרתי את המיטה", coins: 4, icon: "🛏️", taskPeriod: "morning" },
+  { id: "t9", title: "הכנסתי אוכל ומים לתיק", coins: 4, icon: "🎒", taskPeriod: "morning" },
+  { id: "t10", title: "אכלתי ארוחת בוקר", coins: 4, icon: "🍳", taskPeriod: "morning" },
 ];
+
+export const DEFAULT_EVENING_TASKS: Task[] = [
+  { id: "e1", title: "עשיתי שיעורי בית", coins: 3, icon: "📚", taskPeriod: "evening" },
+  { id: "e2", title: "התקלחתי", coins: 2, icon: "🛁", taskPeriod: "evening" },
+  { id: "e3", title: "עזרתי לפנות אחרי ארוחה", coins: 2, icon: "🍽️", taskPeriod: "evening" },
+  { id: "e4", title: "צחצחתי שיניים לפני שינה", coins: 2, icon: "🪥", taskPeriod: "evening" },
+  { id: "e5", title: "נכנסתי למיטה בזמן", coins: 3, icon: "🌙", taskPeriod: "evening" },
+];
+
+export const DEFAULT_TASKS: Task[] = [...DEFAULT_MORNING_TASKS, ...DEFAULT_EVENING_TASKS];
 
 export const DEFAULT_REWARDS = [
   { id: "r1", title: "לבחור סרט משפחתי בערב", cost: 25, icon: "🎬" },

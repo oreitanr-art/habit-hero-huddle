@@ -2,8 +2,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Store, Task, Reward, Settings, DailyStatus, Streak, Bonuses, Penalties } from "@/lib/morning-coins/types";
-import { getTodayKey, getWeekKey, isShopDay as checkIsShopDay } from "@/lib/morning-coins/date-utils";
+import { Store, Task, Reward, Settings, DailyStatus, TaskPeriod } from "@/lib/morning-coins/types";
+import { getTodayKey, getWeekKey, isShopDay as checkIsShopDay, getCurrentPeriod } from "@/lib/morning-coins/date-utils";
 import { DEFAULT_STORE } from "@/lib/morning-coins/defaults";
 
 interface ChildSettings {
@@ -21,6 +21,7 @@ interface ChildTask {
   coins: number;
   icon: string;
   sort_order: number;
+  task_period: string;
 }
 
 interface ChildReward {
@@ -35,9 +36,25 @@ interface ChildReward {
 interface ChildDailyProgress {
   date: string;
   completed_task_ids: string[];
+  completed_evening_task_ids: string[];
   all_done_bonus_applied: boolean;
+  evening_all_done_bonus_applied: boolean;
   penalty_applied: boolean;
+  evening_penalty_applied: boolean;
   submitted_at: string | null;
+  evening_submitted_at: string | null;
+}
+
+function getDefaultDailyStatus(date: string): DailyStatus {
+  return {
+    date,
+    completedTaskIds: [],
+    completedEveningTaskIds: [],
+    allDoneBonusApplied: false,
+    eveningAllDoneBonusApplied: false,
+    penaltyApplied: false,
+    eveningPenaltyApplied: false,
+  };
 }
 
 export function useMorningCoinsCloud() {
@@ -54,7 +71,6 @@ export function useMorningCoinsCloud() {
     }
 
     try {
-      // Fetch all data in parallel
       const [settingsRes, tasksRes, rewardsRes, progressRes, weeklyCoinsRes] = await Promise.all([
         supabase.from("child_settings").select("*").eq("child_id", selectedChild.id).single(),
         supabase.from("child_tasks").select("*").eq("child_id", selectedChild.id).order("sort_order"),
@@ -77,6 +93,7 @@ export function useMorningCoinsCloud() {
         title: t.title,
         coins: t.coins,
         icon: t.icon,
+        taskPeriod: (t.task_period || 'morning') as TaskPeriod,
       }));
 
       const rewards: Reward[] = (rewardsRes.data || []).map((r: ChildReward) => ({
@@ -92,9 +109,13 @@ export function useMorningCoinsCloud() {
         dailyByDate[p.date] = {
           date: p.date,
           completedTaskIds: p.completed_task_ids || [],
+          completedEveningTaskIds: p.completed_evening_task_ids || [],
           allDoneBonusApplied: p.all_done_bonus_applied,
+          eveningAllDoneBonusApplied: p.evening_all_done_bonus_applied,
           penaltyApplied: p.penalty_applied,
+          eveningPenaltyApplied: p.evening_penalty_applied,
           submittedAt: p.submitted_at || undefined,
+          eveningSubmittedAt: p.evening_submitted_at || undefined,
         };
       });
 
@@ -139,46 +160,55 @@ export function useMorningCoinsCloud() {
     loadData();
   }, [loadData]);
 
-  // Toggle task completion
+  // Toggle task completion (handles both morning and evening)
   const toggleTask = useCallback(async (taskId: string) => {
     if (!selectedChild || !store) return;
 
-    const todayKey = getTodayKey();
-    const todayStatus = store.dailyByDate[todayKey] || {
-      date: todayKey,
-      completedTaskIds: [],
-      allDoneBonusApplied: false,
-      penaltyApplied: false,
-    };
-
-    const isCompleting = !todayStatus.completedTaskIds.includes(taskId);
-    const newCompletedIds = isCompleting
-      ? [...todayStatus.completedTaskIds, taskId]
-      : todayStatus.completedTaskIds.filter((id) => id !== taskId);
-
-    // Calculate coin change
     const task = store.tasks.find((t) => t.id === taskId);
     if (!task) return;
+
+    const isEvening = task.taskPeriod === 'evening';
+    const todayKey = getTodayKey();
+    const todayStatus = store.dailyByDate[todayKey] || getDefaultDailyStatus(todayKey);
+
+    const completedIds = isEvening ? todayStatus.completedEveningTaskIds : todayStatus.completedTaskIds;
+    const isCompleting = !completedIds.includes(taskId);
+    const newCompletedIds = isCompleting
+      ? [...completedIds, taskId]
+      : completedIds.filter((id) => id !== taskId);
 
     const coinChange = isCompleting ? task.coins : -task.coins;
     const newWalletCoins = store.walletCoins + coinChange;
 
-    // Check if all tasks completed
-    const allDone = newCompletedIds.length === store.tasks.length;
-    const wasAllDone = todayStatus.completedTaskIds.length === store.tasks.length;
+    // Check if all tasks of this period are completed
+    const periodTasks = store.tasks.filter((t) => t.taskPeriod === task.taskPeriod);
+    const allDone = newCompletedIds.length === periodTasks.length;
+    const wasAllDone = completedIds.length === periodTasks.length;
+
+    const currentBonusApplied = isEvening
+      ? todayStatus.eveningAllDoneBonusApplied
+      : todayStatus.allDoneBonusApplied;
 
     let bonusChange = 0;
-    let newAllDoneBonusApplied = todayStatus.allDoneBonusApplied;
+    let newBonusApplied = currentBonusApplied;
 
-    if (allDone && !todayStatus.allDoneBonusApplied) {
+    if (allDone && !currentBonusApplied) {
       bonusChange = store.settings.bonuses.allDoneDailyBonus;
-      newAllDoneBonusApplied = true;
-    } else if (!allDone && wasAllDone && todayStatus.allDoneBonusApplied) {
+      newBonusApplied = true;
+    } else if (!allDone && wasAllDone && currentBonusApplied) {
       bonusChange = -store.settings.bonuses.allDoneDailyBonus;
-      newAllDoneBonusApplied = false;
+      newBonusApplied = false;
     }
 
     const finalWalletCoins = newWalletCoins + bonusChange;
+
+    // Build updated daily status
+    const updatedStatus: DailyStatus = {
+      ...todayStatus,
+      ...(isEvening
+        ? { completedEveningTaskIds: newCompletedIds, eveningAllDoneBonusApplied: newBonusApplied }
+        : { completedTaskIds: newCompletedIds, allDoneBonusApplied: newBonusApplied }),
+    };
 
     // Update local state immediately
     setStore((prev) => {
@@ -188,32 +218,28 @@ export function useMorningCoinsCloud() {
         walletCoins: finalWalletCoins,
         dailyByDate: {
           ...prev.dailyByDate,
-          [todayKey]: {
-            ...todayStatus,
-            completedTaskIds: newCompletedIds,
-            allDoneBonusApplied: newAllDoneBonusApplied,
-          },
+          [todayKey]: updatedStatus,
         },
       };
     });
 
     // Update database
     try {
-      // Upsert daily progress
       await supabase.from("child_daily_progress").upsert({
         child_id: selectedChild.id,
         date: todayKey,
-        completed_task_ids: newCompletedIds,
-        all_done_bonus_applied: newAllDoneBonusApplied,
-        penalty_applied: todayStatus.penaltyApplied,
+        completed_task_ids: updatedStatus.completedTaskIds,
+        completed_evening_task_ids: updatedStatus.completedEveningTaskIds,
+        all_done_bonus_applied: updatedStatus.allDoneBonusApplied,
+        evening_all_done_bonus_applied: updatedStatus.eveningAllDoneBonusApplied,
+        penalty_applied: updatedStatus.penaltyApplied || false,
+        evening_penalty_applied: updatedStatus.eveningPenaltyApplied || false,
       }, { onConflict: "child_id,date" });
 
-      // Update wallet coins
       await supabase.from("children").update({
         wallet_coins: finalWalletCoins,
       }).eq("id", selectedChild.id);
 
-      // Update weekly coins
       const weekKey = getWeekKey(new Date());
       const currentWeeklyCoins = store.weeklyCoinsByWeekKey[weekKey] || 0;
       const newWeeklyCoins = currentWeeklyCoins + coinChange + bonusChange;
@@ -226,7 +252,6 @@ export function useMorningCoinsCloud() {
 
     } catch (error) {
       console.error("Error updating task:", error);
-      // Reload data on error
       loadData();
     }
   }, [selectedChild, store, loadData]);
@@ -241,23 +266,16 @@ export function useMorningCoinsCloud() {
     const newWalletCoins = store.walletCoins - reward.cost;
     const weekKey = getWeekKey(new Date());
 
-    // Update local state
     setStore((prev) => {
       if (!prev) return prev;
-      return {
-        ...prev,
-        walletCoins: newWalletCoins,
-      };
+      return { ...prev, walletCoins: newWalletCoins };
     });
 
-    // Update database
     try {
-      // Update wallet coins
       await supabase.from("children").update({
         wallet_coins: newWalletCoins,
       }).eq("id", selectedChild.id);
 
-      // Record purchase in history
       await supabase.from("reward_purchases").insert({
         child_id: selectedChild.id,
         reward_title: reward.title,
@@ -281,26 +299,12 @@ export function useMorningCoinsCloud() {
     const mergedSettings = {
       ...store.settings,
       ...newSettings,
-      bonuses: {
-        ...store.settings.bonuses,
-        ...newSettings.bonuses,
-      },
-      penalties: {
-        ...store.settings.penalties,
-        ...newSettings.penalties,
-      },
+      bonuses: { ...store.settings.bonuses, ...newSettings.bonuses },
+      penalties: { ...store.settings.penalties, ...newSettings.penalties },
     };
 
-    // Update local state
-    setStore((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        settings: mergedSettings,
-      };
-    });
+    setStore((prev) => prev ? { ...prev, settings: mergedSettings } : prev);
 
-    // Update database
     try {
       await supabase.from("child_settings").update({
         pin: mergedSettings.pin,
@@ -316,9 +320,11 @@ export function useMorningCoinsCloud() {
     }
   }, [selectedChild, store, loadData]);
 
-  // Add task
+  // Add task (with period support)
   const addTask = useCallback(async (task: Omit<Task, "id">) => {
     if (!selectedChild) return;
+
+    const periodTasks = store?.tasks.filter((t) => t.taskPeriod === task.taskPeriod) || [];
 
     try {
       const { data, error } = await supabase.from("child_tasks").insert({
@@ -326,7 +332,8 @@ export function useMorningCoinsCloud() {
         title: task.title,
         coins: task.coins,
         icon: task.icon,
-        sort_order: (store?.tasks.length || 0) + 1,
+        task_period: task.taskPeriod || 'morning',
+        sort_order: periodTasks.length + 1,
       }).select().single();
 
       if (!error && data) {
@@ -334,7 +341,13 @@ export function useMorningCoinsCloud() {
           if (!prev) return prev;
           return {
             ...prev,
-            tasks: [...prev.tasks, { id: data.id, title: data.title, coins: data.coins, icon: data.icon }],
+            tasks: [...prev.tasks, {
+              id: data.id,
+              title: data.title,
+              coins: data.coins,
+              icon: data.icon,
+              taskPeriod: (data.task_period || 'morning') as TaskPeriod,
+            }],
           };
         });
       }
@@ -358,9 +371,7 @@ export function useMorningCoinsCloud() {
         if (!prev) return prev;
         return {
           ...prev,
-          tasks: prev.tasks.map((t) =>
-            t.id === taskId ? { ...t, ...updates } : t
-          ),
+          tasks: prev.tasks.map((t) => t.id === taskId ? { ...t, ...updates } : t),
         };
       });
     } catch (error) {
@@ -374,13 +385,9 @@ export function useMorningCoinsCloud() {
 
     try {
       await supabase.from("child_tasks").delete().eq("id", taskId);
-
       setStore((prev) => {
         if (!prev) return prev;
-        return {
-          ...prev,
-          tasks: prev.tasks.filter((t) => t.id !== taskId),
-        };
+        return { ...prev, tasks: prev.tasks.filter((t) => t.id !== taskId) };
       });
     } catch (error) {
       console.error("Error deleting task:", error);
@@ -437,9 +444,7 @@ export function useMorningCoinsCloud() {
         if (!prev) return prev;
         return {
           ...prev,
-          rewards: prev.rewards.map((r) =>
-            r.id === rewardId ? { ...r, ...updates } : r
-          ),
+          rewards: prev.rewards.map((r) => r.id === rewardId ? { ...r, ...updates } : r),
         };
       });
     } catch (error) {
@@ -453,13 +458,9 @@ export function useMorningCoinsCloud() {
 
     try {
       await supabase.from("child_rewards").delete().eq("id", rewardId);
-
       setStore((prev) => {
         if (!prev) return prev;
-        return {
-          ...prev,
-          rewards: prev.rewards.filter((r) => r.id !== rewardId),
-        };
+        return { ...prev, rewards: prev.rewards.filter((r) => r.id !== rewardId) };
       });
     } catch (error) {
       console.error("Error deleting reward:", error);
@@ -467,16 +468,10 @@ export function useMorningCoinsCloud() {
   }, [selectedChild]);
 
   // Get today's status
-  const getTodayStatus = useCallback(() => {
+  const getTodayStatus = useCallback((): DailyStatus | null => {
     if (!store) return null;
     const todayKey = getTodayKey();
-    return store.dailyByDate[todayKey] || {
-      date: todayKey,
-      completedTaskIds: [],
-      allDoneBonusApplied: false,
-      penaltyApplied: false,
-      submittedAt: undefined,
-    };
+    return store.dailyByDate[todayKey] || getDefaultDailyStatus(todayKey);
   }, [store]);
 
   // Get weekly coins
@@ -486,20 +481,32 @@ export function useMorningCoinsCloud() {
     return store.weeklyCoinsByWeekKey[weekKey] || 0;
   }, [store]);
 
-  // Check if today is submitted/locked
+  // Check if today's morning is submitted/locked
   const isTodaySubmitted = useCallback(() => {
     const todayStatus = getTodayStatus();
     return !!todayStatus?.submittedAt;
   }, [getTodayStatus]);
 
-  // Submit today's tasks (lock the day)
-  const submitToday = useCallback(async () => {
+  // Check if today's evening is submitted/locked
+  const isTodayEveningSubmitted = useCallback(() => {
+    const todayStatus = getTodayStatus();
+    return !!todayStatus?.eveningSubmittedAt;
+  }, [getTodayStatus]);
+
+  // Submit today's tasks (lock a period)
+  const submitToday = useCallback(async (period: TaskPeriod = 'morning') => {
     if (!selectedChild || !store) return false;
 
     const todayKey = getTodayKey();
     const todayStatus = store.dailyByDate[todayKey];
-    
-    if (!todayStatus || todayStatus.submittedAt) return false;
+
+    if (!todayStatus) return false;
+
+    const isEvening = period === 'evening';
+
+    // Check if already submitted for this period
+    if (isEvening && todayStatus.eveningSubmittedAt) return false;
+    if (!isEvening && todayStatus.submittedAt) return false;
 
     const submittedAt = new Date().toISOString();
 
@@ -512,7 +519,9 @@ export function useMorningCoinsCloud() {
           ...prev.dailyByDate,
           [todayKey]: {
             ...prev.dailyByDate[todayKey],
-            submittedAt,
+            ...(isEvening
+              ? { eveningSubmittedAt: submittedAt }
+              : { submittedAt }),
           },
         },
       };
@@ -520,9 +529,13 @@ export function useMorningCoinsCloud() {
 
     // Update database
     try {
-      await supabase.from("child_daily_progress").update({
-        submitted_at: submittedAt,
-      }).eq("child_id", selectedChild.id).eq("date", todayKey);
+      const updateField = isEvening
+        ? { evening_submitted_at: submittedAt }
+        : { submitted_at: submittedAt };
+
+      await supabase.from("child_daily_progress").update(updateField)
+        .eq("child_id", selectedChild.id)
+        .eq("date", todayKey);
 
       return true;
     } catch (error) {
@@ -548,6 +561,7 @@ export function useMorningCoinsCloud() {
     getTodayStatus,
     getWeeklyCoins,
     isTodaySubmitted,
+    isTodayEveningSubmitted,
     submitToday,
     refresh: loadData,
   };

@@ -79,3 +79,17 @@ export function formatDateHebrew(dateStr: string): string {
   const date = new Date(dateStr);
   return `יום ${getHebrewDayName(date)}, ${date.getDate()}/${date.getMonth() + 1}`;
 }
+
+// Get current task period based on Israel time
+// Morning: 00:00 - 14:00, Evening: 14:01 - 23:59
+export function getCurrentPeriod(): 'morning' | 'evening' {
+  const israelTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Jerusalem" });
+  const now = new Date(israelTime);
+  const totalMinutes = now.getHours() * 60 + now.getMinutes();
+  return totalMinutes <= 840 ? 'morning' : 'evening'; // 840 = 14:00
+}
+
+// Check if evening tasks are available (after 14:00 Israel time)
+export function isEveningAvailable(): boolean {
+  return getCurrentPeriod() === 'evening';
+}

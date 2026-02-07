@@ -210,12 +210,20 @@ export function useMorningCoinsCloud() {
         : { completedTaskIds: newCompletedIds, allDoneBonusApplied: newBonusApplied }),
     };
 
-    // Update local state immediately
+    // Update local state immediately (including weekly coins)
+    const weekKey = getWeekKey(new Date());
+    const currentWeeklyCoins = store.weeklyCoinsByWeekKey[weekKey] || 0;
+    const newWeeklyCoins = currentWeeklyCoins + coinChange + bonusChange;
+
     setStore((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
         walletCoins: finalWalletCoins,
+        weeklyCoinsByWeekKey: {
+          ...prev.weeklyCoinsByWeekKey,
+          [weekKey]: newWeeklyCoins,
+        },
         dailyByDate: {
           ...prev.dailyByDate,
           [todayKey]: updatedStatus,
@@ -240,9 +248,7 @@ export function useMorningCoinsCloud() {
         wallet_coins: finalWalletCoins,
       }).eq("id", selectedChild.id);
 
-      const weekKey = getWeekKey(new Date());
-      const currentWeeklyCoins = store.weeklyCoinsByWeekKey[weekKey] || 0;
-      const newWeeklyCoins = currentWeeklyCoins + coinChange + bonusChange;
+      // Reuse weekKey/newWeeklyCoins from above
 
       await supabase.from("child_weekly_coins").upsert({
         child_id: selectedChild.id,

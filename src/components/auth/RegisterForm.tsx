@@ -120,10 +120,18 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
         }
       }
 
-      toast({
-        title: "נרשמת בהצלחה! 🎉",
-        description: "בדוק את האימייל שלך לאישור ההרשמה",
-      });
+      // If session exists, user is auto-confirmed → go straight to dashboard
+      if (authData.session) {
+        toast({
+          title: "נרשמת בהצלחה! 🎉",
+          description: "ברוכים הבאים למערכת!",
+        });
+      } else {
+        toast({
+          title: "נרשמת בהצלחה! 🎉",
+          description: "בדוק את האימייל שלך לאישור ההרשמה",
+        });
+      }
 
       navigate("/");
     } finally {
